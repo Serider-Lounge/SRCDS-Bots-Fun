@@ -1,6 +1,7 @@
 *.bat
 *.sh
 *.exe
+*.smx
 
 admin*.inc
 adt*.inc
