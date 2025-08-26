@@ -1,0 +1,66 @@
+name: Compile with SourceMod
+
+on:
+  push:
+    paths-ignore:
+      - '**/*.md'
+      - '**/LICENSE'
+      - '**/.git*'
+      - '**/*.smx'
+  pull_request:
+    paths-ignore:
+      - '**/*.md'
+      - '**/LICENSE'
+      - '**/.git*'
+      - '**/*.smx'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set environment variables
+        run: echo SCRIPTS_PATH=$(pwd) >> $GITHUB_ENV
+
+      - name: Setup SourcePawn Compiler ${{ matrix.SM_VERSION }}
+        id: setup_sp
+        uses: rumblefrog/setup-sp@master
+        with:
+          version: '1.13.x'
+          version-file: ./tfbots_fun.sp
+
+      - name: Compile plugins
+        run: |
+          for file in tfbots_fun.sp
+          do
+            echo -e "\nCompiling $file..."
+            spcomp -E -w234 -O2 -v2 -i include $file
+          done
+          echo "===OUT FILES==="
+          ls
+        working-directory: ${{ env.SCRIPTS_PATH }}
+
+      - name: Move smx to plugins directory
+        run: |
+          mkdir -p plugins
+          mv tfbots_fun.smx plugins/
+
+      - name: Create scripting directory and move source code
+        run: |
+          mkdir -p scripting/tfbots_fun
+          mv tfbots_fun.sp scripting/
+          mv tfbots_fun/* scripting/tfbots_fun/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "Discord Redux"
+          path: |
+            plugins/tfbots_fun.smx
+            scripting/tfbots_fun.sp
+            scripting/tfbots_fun/**
