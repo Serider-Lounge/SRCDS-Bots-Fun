@@ -1,6 +1,9 @@
+#undef REQUIRE_EXTENSIONS
+#include <rcbot2> // https://github.com/APGRoboCop/rcbot2
+#define REQUIRE_EXTENSIONS
+
 #include <sourcemod>
 #include <tf2_stocks>
-#include <rcbot2>
 #include <serider/navmesh>
 #include <multicolors>
 
@@ -15,16 +18,11 @@ ConVar g_PluginEnabled,
        rcbot_bot_quota_interval,
        tf_bot_quota;
 
-bool permaDeathMode;                   
-
 int TFBotQuota;
 
 /* ========[Core]======== */
 public void OnPluginStart()
 {
-    // Variables
-    permaDeathMode = IsGameMode("arena") || GameRules_GetProp("m_iRoundState") == 7 || IsVScript("vssaxtonhale/vsh");
-
     // ConVars
     rcbot_bot_quota_interval = FindConVar("rcbot_bot_quota_interval");
     tf_bot_quota = FindConVar("tf_bot_quota");
