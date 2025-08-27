@@ -1,4 +1,3 @@
-// CLIENTS
 /**
  * Kick all RCBot2 clients.
  */
@@ -13,13 +12,13 @@ stock void KickRCBots()
     }
 }
 
-// GAMEMODES
 /**
  * This function is used to check for VScript-based game modes.
+ * 
  * @param  path Game mode's core VScript file (without .nut)
  * @return      True if the file is present 
  */
-stock bool isVScript(const char[] path)
+stock bool IsVScript(const char[] path)
 {
     char filePath[PLATFORM_MAX_PATH];
     Format(filePath, sizeof(filePath), "scripts/vscripts/%s.nut", path);
@@ -35,12 +34,28 @@ stock bool isVScript(const char[] path)
 
 /**
  * This function is used to check for game mode logic entities.
+ * 
  * @param  gamemode tf_logic_<gamemode> (e.g., "player_destruction" for "tf_logic_player_destruction")
  * @return          True if the entity is found
  */
-stock bool isGameMode(const char[] gamemode)
+stock bool IsGameMode(const char[] gamemode)
 {
     char entity[64];
     Format(entity, sizeof(entity), "tf_logic_%s", gamemode);
     return FindEntityByClassname(-1, entity) != -1;
+}
+
+/**
+ * Execute a cheat command without having to enable sv_cheats.
+ * 
+ * @param command Console command
+ */
+stock void CheatCommand(const char[] command)
+{
+    ConVar cheatCommand = FindConVar(command);
+    int oldFlags = cheatCommand.Flags;
+
+    cheatCommand.Flags &= ~FCVAR_CHEAT;
+    ServerCommand(command);
+    cheatCommand.Flags = oldFlags;
 }

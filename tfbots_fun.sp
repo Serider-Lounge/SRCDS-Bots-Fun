@@ -1,64 +1,98 @@
-#undef REQUIRE_EXTENSIONS
-#include <rcbot2>
-#define REQUIRE_EXTENSIONS
-
 #include <sourcemod>
+#include <tf2_stocks>
+#include <rcbot2>
 #include <serider/navmesh>
+#include <multicolors>
 
-#define PREFIX  "[TFBots Fun]"
-#define PREFIX_DEBUG "[TFBots Fun | DEBUG]"
+#include "tfbots_fun/stocks.sp"
 
-#define VSCRIPT_VSH "vssaxtonhale/vsh"
-#define VSCRIPT_ZI  "infection/infection"
+#define PLUGIN_NAME   "TFBots Fun"
+#define PREFIX       "{red}TFBots Fun{default}"
+#define PREFIX_DEBUG "{red}TFBots Fun{default} | {lightyellow}Debug{default}"
 
-ConVar g_TFBotRatio,
+ConVar g_PluginEnabled,
+       g_TFBotRatio,
        rcbot_bot_quota_interval,
        tf_bot_quota;
 
+bool permaDeathMode;                   
+
 int TFBotQuota;
 
+/* ========[Core]======== */
 public void OnPluginStart()
 {
+    // Variables
+    permaDeathMode = IsGameMode("arena") || GameRules_GetProp("m_iRoundState") == 7 || IsVScript("vssaxtonhale/vsh");
+
+    // ConVars
     rcbot_bot_quota_interval = FindConVar("rcbot_bot_quota_interval");
     tf_bot_quota = FindConVar("tf_bot_quota");
 
-    g_TFBotRatio = CreateConVar("sm_tf_bot_ratio", "0.25", "", FCVAR_REPLICATED, true, 0.00, true, 1.00);
-    HookConVarChange(g_TFBotRatio, OnConVarChanged);
+    g_PluginEnabled = CreateConVar("sm_tfbot_fun_enabled", "1",
+                                   "Toggle the plugin.",
+                                    FCVAR_REPLICATED);
+    HookConVarChange(g_PluginEnabled, ConVar_BotQuota);
+    g_TFBotRatio = CreateConVar("sm_tf_bot_ratio", "0.25",
+                                "Ratio of 'tf_bot_quota' to max players.",
+                                FCVAR_REPLICATED,
+                                true, 0.0, true, 1.0);
+    HookConVarChange(g_TFBotRatio, ConVar_BotQuota);
 
     AutoExecConfig(true, "tfbots_fun");
 
-    RegConsoleCmd("sm_nav_info", Command_NavInfo, "Retrieve NavMesh/RCBot2 information.");
+    // Events
+    HookEvent("player_spawn", OnPlayerSpawn);
+
+    // Commands
+    RegConsoleCmd("sm_nav_info", Command_NavInfo, "Display information about bot support.");
+    
+    RegAdminCmd("sm_nav_generate", Command_NavGenerate, ADMFLAG_CHEATS, "Generate navigation meshes.");
+    RegAdminCmd("sm_nav_generate_incremental", Command_NavGenerateIncremental, ADMFLAG_CHEATS, "Generate navigation meshes incrementally.");
 }
 
 public void OnConfigsExecuted()
 {
     SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
 
+    // Check if the plugin is enabled
+    if (!g_PluginEnabled.BoolValue && IsGameMode("mann_vs_machine"))
+    {
+        SetConVarInt(rcbot_bot_quota_interval, 0);
+        SetConVarInt(tf_bot_quota, 0);
+
+        KickRCBots();
+
+        PrintToServer("[%s] Plugin has been disabled, kicking bots...", PLUGIN_NAME);
+        return;
+    }
+
+    // Check for bot support
     if (RCBot2_IsWaypointAvailable())
     {
         SetConVarInt(rcbot_bot_quota_interval, 1);
         SetConVarInt(tf_bot_quota, 0);
 
-        PrintToServer("%s RCBot2 waypoints detected, adding RCBot clients...", PREFIX_DEBUG);
-        PrintToServer("%s rcbot_bot_quota_interval: %d.", PREFIX_DEBUG, rcbot_bot_quota_interval.IntValue);
-        PrintToServer("%s /!\\ WARNING /!\\: Make sure to comment out 'rcbot_bot_quota_interval' in 'addons/rcbot2/config/config.ini'!.", PREFIX_DEBUG);
+        PrintToServer("[%s] RCBot2 waypoints detected, adding RCBot clients...", PLUGIN_NAME);
+        PrintToServer("[%s] rcbot_bot_quota_interval: %d.", PLUGIN_NAME, rcbot_bot_quota_interval.IntValue);
+        PrintToServer("[%s] ⚠ WARNING ⚠: Make sure to comment out 'rcbot_bot_quota_interval' in 'addons/rcbot2/config/config.ini'!.", PLUGIN_NAME);
     }
-    else if (NavMesh_IsLoaded() && !isGameMode("mann_vs_machine"))
+    else if (NavMesh_IsLoaded())
     {
+        ConVar tf_bot_offense_must_push_time = FindConVar("tf_bot_offense_must_push_time");
+        int oldPushTime = GetConVarInt(tf_bot_offense_must_push_time);
         TFBotQuota = RoundFloat(g_TFBotRatio.FloatValue * GetMaxHumanPlayers());
-        int TFBotOffenseMustPushTime_Backup = GetConVarInt(FindConVar("tf_bot_offense_must_push_time"));
 
         SetConVarInt(rcbot_bot_quota_interval, 0);
         SetConVarInt(tf_bot_quota, TFBotQuota);
         SetConVarInt(FindConVar("tf_bot_offense_must_push_time"),
-                    (isVScript(VSCRIPT_VSH) ||
-                     isVScript(VSCRIPT_ZI) ||
-                     isGameMode("robot_destruction")) ? 0 : TFBotOffenseMustPushTime_Backup > 0 ? TFBotOffenseMustPushTime_Backup : 120);
+                    (IsGameMode("player_destruction") || 
+                     IsGameMode("robot_destruction")) ? -1 : oldPushTime > -1 ? oldPushTime : 120);
 
         KickRCBots();
 
-        PrintToServer("%s Valve Navigation Meshes detected, adding TFBot clients...", PREFIX_DEBUG, TFBotQuota);
-        PrintToServer("%s tf_bot_quota: %d.", PREFIX_DEBUG, TFBotQuota);
+        PrintToServer("[%s] Valve Navigation Meshes detected, adding TFBot clients...", PLUGIN_NAME, TFBotQuota);
+        PrintToServer("[%s] tf_bot_quota: %d.", PLUGIN_NAME, TFBotQuota);
     }
     else
     {
@@ -67,26 +101,114 @@ public void OnConfigsExecuted()
 
         KickRCBots();
 
-        PrintToServer("%s Bots are unsupported on this map.", PREFIX_DEBUG);
+        PrintToServer("[%s] Bots are unsupported on this map.", PLUGIN_NAME);
     }
 }
 
-public void OnConVarChanged(ConVar convar, const char[] oldValue, const char[] newValue)
+/* ========[ConVars]======== */
+public void ConVar_BotQuota(ConVar convar, const char[] oldValue, const char[] newValue)
 {
     OnConfigsExecuted();
-    PrintToServer("%s rcbot_bot_quota_interval: %d.", PREFIX_DEBUG, rcbot_bot_quota_interval.IntValue);
 }
 
+/* ========[Events]======== */
+public void OnPlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+{
+    int client = GetClientOfUserId(event.GetInt("userid"));
+
+    if (client <= 0 ||
+        !IsClientInGame(client) ||
+        !IsFakeClient(client) ||
+        IsClientReplay(client) ||
+        IsClientSourceTV(client)) return;
+
+    RequestFrame(ReqFrame_SetNameFromModel, client);
+}
+
+public void ReqFrame_SetNameFromModel(int client)
+{
+    // TO-DO: Move these to a config file (but I have no idea how to implement it (yet?) - Heapons)
+    static const char classes[][2][32] = {
+        {"scout", "Scout"},
+        {"soldier", "Soldier"},
+        {"pyro", "Pyro"},
+        {"demo", "Demoman"},
+        {"heavy", "Heavy Weapons Guy"},
+        {"engineer", "Engineer"},
+        {"medic", "Medic"},
+        {"sniper", "Sniper"},
+        {"spy", "Spy"},
+        {"saxton_hale", "Saxton Hale"},
+        {"mecha_hale", "Mecha-Hale"},
+        {"sentry_buster", "Sentry Buster"},
+        {"skeleton_sniper", "Skeleton"},
+        {"giant_shako", "Demopan"},
+        {"epic/scout", "Epic Scout"},
+        {"gaben", "Gabe Newell"},
+        {"gentlespy", "Gentlespy"},
+        {"graymann", "Gray Mann"},
+        {"ninjaspy", "Ninja Spy"},
+        {"seeman", "Seeman"},
+        {"seeldier", "Seeldier"},
+        {"cbs", "Christian Brutal Sniper"},
+        {"easter_demo", "Easter Demo"},
+        {"hhh", "Headless Horseless Hatman"},
+        {"vagineer", "Vagineer"},
+        {"civilian", "Civilian"},
+        {"merasmus", "Merasmus"},
+        {"saxtron", "Saxtron H413"},
+        {"infected/hoomer", "Boomer"},
+        {"infected/coomer", "Charger"},
+        {"infected/hank", "Tank"},
+        {"infected/scunter", "Hunter"},
+        {"infected/spyro", "Spitter"},
+        {"infected/wanker", "Smoker"},
+        {"infected/sock", "Jockey"},
+        {"infected/benic", "Screamer"},
+        {"mobster", "Mobster"},
+        {"julius", "Julius"},
+        {"merc", "Mercenary"},
+        {"pauling", "Ms. Pauling"}
+    };
+
+    char model[PLATFORM_MAX_PATH];
+    GetClientModel(client, model, sizeof(model));
+
+    for (int i = 0; i < sizeof(classes); i++)
+    {
+        if (StrContains(model, classes[i][0], false) != -1)
+        {
+            SetClientName(client, classes[i][1]);
+            break;
+        }
+    }
+}
+
+/* ========[Commands]======== */
 public Action Command_NavInfo(int client, int args)
 {
-    ReplyToCommand(client, "%s\n- Type: %s\n- Quota: %d (%s)\n- Area Count: %d",
-                   PREFIX_DEBUG,
-                   RCBot2_IsWaypointAvailable() ? "RCBot2" : NavMesh_IsLoaded() ? "TFBot" : "N/A",
-                   RCBot2_IsWaypointAvailable() ? rcbot_bot_quota_interval.IntValue : tf_bot_quota.IntValue,
-                   RCBot2_IsWaypointAvailable() ? "rcbot_bot_quota_interval" : NavMesh_IsLoaded() ? "tf_bot_quota" : "N/A",
-                   NavMesh_GetNavAreaCount());
+    CReplyToCommand(client, "[%s]:\n- {olive}Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default} ({lightcyan}%s{default})\n- {olive}Area Count{default}: {lightcyan}%d",
+                    PREFIX_DEBUG,
+                    RCBot2_IsWaypointAvailable() ? "RCBot2" : NavMesh_IsLoaded() ? "TFBot" : "N/A",
+                    RCBot2_IsWaypointAvailable() ? rcbot_bot_quota_interval.IntValue : tf_bot_quota.IntValue,
+                    RCBot2_IsWaypointAvailable() ? "rcbot_bot_quota_interval" : NavMesh_IsLoaded() ? "tf_bot_quota" : "N/A",
+                    NavMesh_GetNavAreaCount());
 
     return Plugin_Handled;
 }
 
-#include "tfbots_fun/stocks.sp"
+public Action Command_NavGenerate(int client, int args)
+{
+    CheatCommand("nav_generate");
+
+    CReplyToCommand(client, "[%s] Generating navigation meshes...", PREFIX_DEBUG);
+    return Plugin_Handled;
+}
+
+public Action Command_NavGenerateIncremental(int client, int args)
+{
+    CheatCommand("nav_generate_incremental");
+
+    CReplyToCommand(client, "[%s] Generating navigation meshes incrementally...", PREFIX_DEBUG);
+    return Plugin_Handled;
+}
