@@ -26,7 +26,6 @@ public void OnPluginStart()
     // ConVars
     rcbot_bot_quota_interval = FindConVar("rcbot_bot_quota_interval");
     tf_bot_quota = FindConVar("tf_bot_quota");
-    BotQuota = RoundFloat(gcvar_BotRatio.FloatValue * GetMaxHumanPlayers());
 
     gcvar_PluginEnabled = CreateConVar("sm_tfbot_fun_enabled", "1",
                                        "Toggle the plugin.",
@@ -37,10 +36,13 @@ public void OnPluginStart()
                                   FCVAR_REPLICATED,
                                   true, 0.0, true, 1.0);
     HookConVarChange(gcvar_BotRatio, ConVar_BotRatio);
+    
+    BotQuota = RoundFloat(gcvar_BotRatio.FloatValue * GetMaxHumanPlayers());
 
     AutoExecConfig(true, "tfbots_fun");
 
     // Events
+    HookEvent("player_spawn", OnPlayerSpawn);
     HookEvent("post_inventory_application", OnPlayerSpawn);
 
     // Commands
