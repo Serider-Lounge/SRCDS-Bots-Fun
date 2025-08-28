@@ -13,12 +13,12 @@
 #define PREFIX       "{red}TFBots Fun{default}"
 #define PREFIX_DEBUG "{red}TFBots Fun{default} | {lightyellow}Debug{default}"
 
-ConVar g_PluginEnabled,
-       g_TFBotRatio,
+ConVar gcvar_PluginEnabled,
+       gcvar_BotRatio,
        rcbot_bot_quota_interval,
        tf_bot_quota;
 
-int TFBotQuota;
+int BotQuota;
 
 /* ========[Core]======== */
 public void OnPluginStart()
@@ -26,21 +26,22 @@ public void OnPluginStart()
     // ConVars
     rcbot_bot_quota_interval = FindConVar("rcbot_bot_quota_interval");
     tf_bot_quota = FindConVar("tf_bot_quota");
+    BotQuota = RoundFloat(gcvar_BotRatio.FloatValue * GetMaxHumanPlayers());
 
-    g_PluginEnabled = CreateConVar("sm_tfbot_fun_enabled", "1",
-                                   "Toggle the plugin.",
-                                    FCVAR_REPLICATED);
-    HookConVarChange(g_PluginEnabled, ConVar_BotQuota);
-    g_TFBotRatio = CreateConVar("sm_tf_bot_ratio", "0.25",
-                                "Ratio of 'tf_bot_quota' to max players.",
-                                FCVAR_REPLICATED,
-                                true, 0.0, true, 1.0);
-    HookConVarChange(g_TFBotRatio, ConVar_BotQuota);
+    gcvar_PluginEnabled = CreateConVar("sm_tfbot_fun_enabled", "1",
+                                       "Toggle the plugin.",
+                                        FCVAR_REPLICATED);
+    HookConVarChange(gcvar_PluginEnabled, ConVar_BotRatio);
+    gcvar_BotRatio = CreateConVar("sm_tf_bot_ratio", "0.25",
+                                  "Ratio of 'tf_bot_quota' to max players.",
+                                  FCVAR_REPLICATED,
+                                  true, 0.0, true, 1.0);
+    HookConVarChange(gcvar_BotRatio, ConVar_BotRatio);
 
     AutoExecConfig(true, "tfbots_fun");
 
     // Events
-    HookEvent("player_spawn", OnPlayerSpawn);
+    HookEvent("post_inventory_application", OnPlayerSpawn);
 
     // Commands
     RegConsoleCmd("sm_nav_info", Command_NavInfo, "Display information about bot support.");
@@ -54,7 +55,7 @@ public void OnConfigsExecuted()
     SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
 
     // Check if the plugin is enabled
-    if (!g_PluginEnabled.BoolValue && IsGameMode("mann_vs_machine"))
+    if (!gcvar_PluginEnabled.BoolValue && IsGameMode("mann_vs_machine"))
     {
         SetConVarInt(rcbot_bot_quota_interval, 0);
         SetConVarInt(tf_bot_quota, 0);
@@ -79,18 +80,17 @@ public void OnConfigsExecuted()
     {
         ConVar tf_bot_offense_must_push_time = FindConVar("tf_bot_offense_must_push_time");
         int oldPushTime = GetConVarInt(tf_bot_offense_must_push_time);
-        TFBotQuota = RoundFloat(g_TFBotRatio.FloatValue * GetMaxHumanPlayers());
 
         SetConVarInt(rcbot_bot_quota_interval, 0);
-        SetConVarInt(tf_bot_quota, TFBotQuota);
+        SetConVarInt(tf_bot_quota, BotQuota);
         SetConVarInt(FindConVar("tf_bot_offense_must_push_time"),
                     (IsGameMode("player_destruction") || 
                      IsGameMode("robot_destruction")) ? -1 : oldPushTime > -1 ? oldPushTime : 120);
 
         KickRCBots();
 
-        PrintToServer("[%s] Valve Navigation Meshes detected, adding TFBot clients...", PLUGIN_NAME, TFBotQuota);
-        PrintToServer("[%s] tf_bot_quota: %d.", PLUGIN_NAME, TFBotQuota);
+        PrintToServer("[%s] Valve Navigation Meshes detected, adding TFBot clients...", PLUGIN_NAME, BotQuota);
+        PrintToServer("[%s] tf_bot_quota: %d.", PLUGIN_NAME, BotQuota);
     }
     else
     {
@@ -104,28 +104,27 @@ public void OnConfigsExecuted()
 }
 
 /* ========[ConVars]======== */
-public void ConVar_BotQuota(ConVar convar, const char[] oldValue, const char[] newValue)
+public void ConVar_BotRatio(ConVar convar, const char[] oldValue, const char[] newValue)
 {
     OnConfigsExecuted();
 }
 
 /* ========[Events]======== */
+/* player_spawn */
 public void OnPlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
 
-    if (client <= 0 ||
-        !IsClientInGame(client) ||
-        !IsFakeClient(client) ||
-        IsClientReplay(client) ||
-        IsClientSourceTV(client)) return;
+    if (!IsPlayerAlive(client) ||
+        !IsFakeClient(client)) return;
 
     RequestFrame(ReqFrame_SetNameFromModel, client);
 }
 
 public void ReqFrame_SetNameFromModel(int client)
 {
-    // TO-DO: Move these to a config file (but I have no idea how to implement it (yet?) - Heapons)
+    // TO-DO: Move these to a config file, but I have no idea how to implement it (yet?).
+    // - Heapons
     static const char classes[][2][32] = {
         {"scout", "Scout"},
         {"soldier", "Soldier"},
@@ -136,8 +135,11 @@ public void ReqFrame_SetNameFromModel(int client)
         {"medic", "Medic"},
         {"sniper", "Sniper"},
         {"spy", "Spy"},
+        {"civilian", "Civilian"},
+        {"merc", "Mercenary"},
         {"saxton_hale", "Saxton Hale"},
-        {"mecha_hale", "Mecha-Hale"},
+        {"mecha_hale", "Mecha Hale"},
+        {"hell_hale", "Saxton Hell"},
         {"sentry_buster", "Sentry Buster"},
         {"skeleton_sniper", "Skeleton"},
         {"giant_shako", "Demopan"},
@@ -150,9 +152,8 @@ public void ReqFrame_SetNameFromModel(int client)
         {"seeldier", "Seeldier"},
         {"cbs", "Christian Brutal Sniper"},
         {"easter_demo", "Easter Demo"},
-        {"hhh", "Headless Horseless Hatman"},
+        {"hhh_jr", "Headless Horseless Hatman Jr."},
         {"vagineer", "Vagineer"},
-        {"civilian", "Civilian"},
         {"merasmus", "Merasmus"},
         {"saxtron", "Saxtron H413"},
         {"infected/hoomer", "Boomer"},
@@ -165,7 +166,6 @@ public void ReqFrame_SetNameFromModel(int client)
         {"infected/benic", "Screamer"},
         {"mobster", "Mobster"},
         {"julius", "Julius"},
-        {"merc", "Mercenary"},
         {"pauling", "Ms. Pauling"}
     };
 
