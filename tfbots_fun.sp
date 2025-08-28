@@ -58,6 +58,8 @@ public void OnPluginStart()
     
     RegAdminCmd("sm_nav_generate", Command_NavGenerate, ADMFLAG_CHEATS, "Generate navigation meshes.");
     RegAdminCmd("sm_nav_generate_incremental", Command_NavGenerateIncremental, ADMFLAG_CHEATS, "Generate navigation meshes incrementally.");
+    //RegAdminCmd("sm_nav_copy", Command_NavCopy, ADMFLAG_CHEATS, "Steal a '.nav' file from another map.");
+    //RegAdminCmd("sm_waypoint_copy", Command_WaypointCopy, ADMFLAG_CHEATS, "Steal a '.rcw' waypoint file from another map.");
 }
 
 public void OnConfigsExecuted()
@@ -82,6 +84,10 @@ public void OnConfigsExecuted()
         SetConVarInt(rcbot_bot_quota_interval, 1);
         SetConVarInt(tf_bot_quota, 0);
 
+        AddServerTag("bots");
+        AddServerTag("rcbot2");
+        RemoveServerTag("tfbots");
+
         PrintToServer("[%s] RCBot2 waypoints detected, adding RCBot clients...", PLUGIN_NAME);
         PrintToServer("[%s] rcbot_bot_quota_interval: %d.", PLUGIN_NAME, rcbot_bot_quota_interval.IntValue);
         PrintToServer("[%s] ⚠ WARNING ⚠: Make sure to comment out 'rcbot_bot_quota_interval' in 'addons/rcbot2/config/config.ini'!.", PLUGIN_NAME);
@@ -99,6 +105,10 @@ public void OnConfigsExecuted()
 
         KickRCBots();
 
+        AddServerTag("bots");
+        AddServerTag("tfbots");
+        RemoveServerTag("rcbot2");
+
         PrintToServer("[%s] Valve Navigation Meshes detected, adding TFBot clients...", PLUGIN_NAME, BotQuota);
         PrintToServer("[%s] tf_bot_quota: %d.", PLUGIN_NAME, BotQuota);
     }
@@ -108,6 +118,10 @@ public void OnConfigsExecuted()
         SetConVarInt(tf_bot_quota, 0);
 
         KickRCBots();
+
+        RemoveServerTag("bots");
+        RemoveServerTag("rcbot2");
+        RemoveServerTag("tfbots");
 
         PrintToServer("[%s] Bots are unsupported on this map.", PLUGIN_NAME);
     }
@@ -129,7 +143,7 @@ public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBro
     if (!IsPlayerAlive(client) ||
         !IsFakeClient(client)) return;
 
-    CreateTimer(0.01, Timer_SetNameFromModel, userid);
+    CreateTimer(0.100001, Timer_SetNameFromModel, userid);
 }
 
 public Action Timer_SetNameFromModel(Handle timer, any userid)
