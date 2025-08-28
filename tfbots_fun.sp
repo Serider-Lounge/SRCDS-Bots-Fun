@@ -50,11 +50,8 @@ public void OnPluginStart()
     AutoExecConfig(true, "tfbots_fun");
 
     // Events
-    HookEvent("player_spawn", Event_PlayerModelUpdate);
     HookEvent("post_inventory_application", Event_PlayerModelUpdate);
     HookEvent("teamplay_flag_event", Event_PlayerModelUpdate);
-    HookEvent("player_changeclass", Event_PlayerModelUpdate);
-    HookEvent("player_regenerate", Event_PlayerModelUpdate);
 
     // Commands
     RegConsoleCmd("sm_nav_info", Command_NavInfo, "Display information about bot support.");
@@ -126,19 +123,18 @@ public void ConVar_BotRatio(ConVar convar, const char[] oldValue, const char[] n
 /* player_spawn */
 public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBroadcast)
 {
-    int client = GetClientOfUserId(event.GetInt("userid"));
+    int userid = event.GetInt("userid");
+    int client = GetClientOfUserId(userid);
 
     if (!IsPlayerAlive(client) ||
         !IsFakeClient(client)) return;
 
-    CreateTimer(0.000001, Timer_SetNameFromModel, GetClientUserId(client));
+    CreateTimer(0.01, Timer_SetNameFromModel, userid);
 }
 
 public Action Timer_SetNameFromModel(Handle timer, any userid)
 {
     int client = GetClientOfUserId(userid);
-    if (!IsClientInGame(client) || !IsPlayerAlive(client) || !IsFakeClient(client))
-        return Plugin_Stop;
 
     // TO-DO: Move these to a config file, but I have no idea how to implement it (yet?).
     // - Heapons
@@ -169,7 +165,8 @@ public Action Timer_SetNameFromModel(Handle timer, any userid)
         {"seeldier", "Seeldier"},
         {"cbs", "Christian Brutal Sniper"},
         {"easter_demo", "Easter Demo"},
-        {"hhh_jr", "Headless Horseless Hatman Jr."},
+        {"hhh_jr", "HHH Jr."},
+        {"headless_hatman", "Horseless Headless Horseman"},
         {"vagineer", "Vagineer"},
         {"merasmus", "Merasmus"},
         {"saxtron", "Saxtron H413"},
@@ -183,7 +180,8 @@ public Action Timer_SetNameFromModel(Handle timer, any userid)
         {"infected/benic", "Screamer"},
         {"mobster", "Mobster"},
         {"julius", "Julius"},
-        {"pauling", "Ms. Pauling"}
+        {"pauling", "Ms. Pauling"},
+        {"bot_worker", "Worker"}
     };
 
     char model[PLATFORM_MAX_PATH];
@@ -215,7 +213,7 @@ public Action Command_NavInfo(int client, int args)
 
 public Action Command_NavGenerate(int client, int args)
 {
-    CheatCommand("nav_generate");
+    ServerCommand("sv_cheats 1; nav_generate; sv_cheats 0");
 
     CReplyToCommand(client, "[%s] Generating navigation meshes...", PREFIX_DEBUG);
     return Plugin_Handled;
@@ -223,7 +221,7 @@ public Action Command_NavGenerate(int client, int args)
 
 public Action Command_NavGenerateIncremental(int client, int args)
 {
-    CheatCommand("nav_generate_incremental");
+    ServerCommand("sv_cheats 1; nav_generate_incremental; sv_cheats 0");
 
     CReplyToCommand(client, "[%s] Generating navigation meshes incrementally...", PREFIX_DEBUG);
     return Plugin_Handled;

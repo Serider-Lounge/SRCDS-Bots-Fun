@@ -50,12 +50,12 @@ stock bool IsGameMode(const char[] gamemode)
  * 
  * @param command Console command
  */
-stock void CheatCommand(const char[] command)
-{
-    ConVar cheatCommand = FindConVar(command);
-    int oldFlags = cheatCommand.Flags;
-
-    cheatCommand.Flags &= ~FCVAR_CHEAT;
-    ServerCommand(command);
-    cheatCommand.Flags = oldFlags;
-}
+//stock void CheatCommand(const char[] command)
+//{
+//    ConVar cheatCommand = FindConVar(command);
+//    int oldFlags = cheatCommand.Flags;
+//
+//    cheatCommand.Flags &= ~FCVAR_CHEAT;
+//    ServerCommand(command);
+//    cheatCommand.Flags = oldFlags;
+//}
