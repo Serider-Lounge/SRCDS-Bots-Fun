@@ -12,7 +12,15 @@
 #define PLUGIN_NAME   "TFBots Fun"
 #define PREFIX       "{red}TFBots Fun{default}"
 #define PREFIX_DEBUG "{red}TFBots Fun{default} | {lightyellow}Debug{default}"
-
+/*
+enum FlagEvent
+{
+    TF_FLAGEVENT_PICKUP = 0,
+    TF_FLAGEVENT_CAPTURE,
+    TF_FLAGEVENT_DEFEND,
+    TF_FLAGEVENT_DROPPED
+};
+*/
 ConVar gcvar_PluginEnabled,
        gcvar_BotRatio,
        rcbot_bot_quota_interval,
@@ -42,8 +50,11 @@ public void OnPluginStart()
     AutoExecConfig(true, "tfbots_fun");
 
     // Events
-    HookEvent("player_spawn", OnPlayerSpawn);
-    HookEvent("post_inventory_application", OnPlayerSpawn);
+    HookEvent("player_spawn", Event_PlayerModelUpdate);
+    HookEvent("post_inventory_application", Event_PlayerModelUpdate);
+    HookEvent("teamplay_flag_event", Event_PlayerModelUpdate);
+    HookEvent("player_changeclass", Event_PlayerModelUpdate);
+    HookEvent("player_regenerate", Event_PlayerModelUpdate);
 
     // Commands
     RegConsoleCmd("sm_nav_info", Command_NavInfo, "Display information about bot support.");
@@ -113,18 +124,22 @@ public void ConVar_BotRatio(ConVar convar, const char[] oldValue, const char[] n
 
 /* ========[Events]======== */
 /* player_spawn */
-public void OnPlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
 
     if (!IsPlayerAlive(client) ||
         !IsFakeClient(client)) return;
 
-    RequestFrame(ReqFrame_SetNameFromModel, client);
+    CreateTimer(0.000001, Timer_SetNameFromModel, GetClientUserId(client));
 }
 
-public void ReqFrame_SetNameFromModel(int client)
+public Action Timer_SetNameFromModel(Handle timer, any userid)
 {
+    int client = GetClientOfUserId(userid);
+    if (!IsClientInGame(client) || !IsPlayerAlive(client) || !IsFakeClient(client))
+        return Plugin_Stop;
+
     // TO-DO: Move these to a config file, but I have no idea how to implement it (yet?).
     // - Heapons
     static const char classes[][2][32] = {
@@ -182,6 +197,7 @@ public void ReqFrame_SetNameFromModel(int client)
             break;
         }
     }
+    return Plugin_Stop;
 }
 
 /* ========[Commands]======== */
