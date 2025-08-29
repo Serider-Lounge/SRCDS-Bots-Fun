@@ -66,11 +66,20 @@ public void OnConfigsExecuted()
 {
     SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
 
-    // Check if the plugin is enabled
-    if (!gcvar_PluginEnabled.BoolValue && IsGameMode("mann_vs_machine"))
+    // Check if the plugin is enabled (or if it's MVM)
+    if (!gcvar_PluginEnabled.BoolValue || IsGameMode("mann_vs_machine"))
     {
         SetConVarInt(rcbot_bot_quota_interval, 0);
         SetConVarInt(tf_bot_quota, 0);
+
+        if (IsGameMode("mann_vs_machine"))
+        {
+            int tf_mvm_max_invaders = GetConVarInt(FindConVar("tf_mvm_max_invaders"));
+            int tf_mvm_defenders_team_size = GetConVarInt(FindConVar("tf_mvm_defenders_team_size"));
+            int rcbot2_mvm_max_defenders_team_size = tf_mvm_max_invaders + tf_mvm_defenders_team_size;
+
+            ServerCommand("rcbotd config max_bots %d", rcbot2_mvm_max_defenders_team_size - (rcbot2_mvm_max_defenders_team_size > GetMaxHumanPlayers() ? GetMaxHumanPlayers() + 1 : 0));
+        }
 
         KickRCBots();
 
@@ -134,7 +143,6 @@ public void ConVar_BotRatio(ConVar convar, const char[] oldValue, const char[] n
 }
 
 /* ========[Events]======== */
-/* player_spawn */
 public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBroadcast)
 {
     int userid = event.GetInt("userid");
@@ -227,7 +235,7 @@ public Action Command_NavInfo(int client, int args)
 
 public Action Command_NavGenerate(int client, int args)
 {
-    ServerCommand("sv_cheats 1; nav_generate; sv_cheats 0");
+    CheatCommand("nav_generate");
 
     CReplyToCommand(client, "[%s] Generating navigation meshes...", PREFIX_DEBUG);
     return Plugin_Handled;
@@ -235,7 +243,7 @@ public Action Command_NavGenerate(int client, int args)
 
 public Action Command_NavGenerateIncremental(int client, int args)
 {
-    ServerCommand("sv_cheats 1; nav_generate_incremental; sv_cheats 0");
+    CheatCommand("nav_generate_incremental");
 
     CReplyToCommand(client, "[%s] Generating navigation meshes incrementally...", PREFIX_DEBUG);
     return Plugin_Handled;
