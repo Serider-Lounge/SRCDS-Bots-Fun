@@ -72,15 +72,6 @@ public void OnConfigsExecuted()
         SetConVarInt(rcbot_bot_quota_interval, 0);
         SetConVarInt(tf_bot_quota, 0);
 
-        if (IsGameMode("mann_vs_machine"))
-        {
-            int tf_mvm_max_invaders = GetConVarInt(FindConVar("tf_mvm_max_invaders"));
-            int tf_mvm_defenders_team_size = GetConVarInt(FindConVar("tf_mvm_defenders_team_size"));
-            int rcbot2_mvm_max_defenders_team_size = tf_mvm_max_invaders + tf_mvm_defenders_team_size;
-
-            ServerCommand("rcbotd config max_bots %d", rcbot2_mvm_max_defenders_team_size - (rcbot2_mvm_max_defenders_team_size > GetMaxHumanPlayers() ? GetMaxHumanPlayers() + 1 : 0));
-        }
-
         KickRCBots();
 
         PrintToServer("[%s] Plugin has been disabled, kicking bots...", PLUGIN_NAME);
@@ -92,10 +83,6 @@ public void OnConfigsExecuted()
     {
         SetConVarInt(rcbot_bot_quota_interval, 1);
         SetConVarInt(tf_bot_quota, 0);
-
-        AddServerTag("bots");
-        AddServerTag("rcbot2");
-        RemoveServerTag("tfbots");
 
         PrintToServer("[%s] RCBot2 waypoints detected, adding RCBot clients...", PLUGIN_NAME);
         PrintToServer("[%s] rcbot_bot_quota_interval: %d.", PLUGIN_NAME, rcbot_bot_quota_interval.IntValue);
@@ -114,10 +101,6 @@ public void OnConfigsExecuted()
 
         KickRCBots();
 
-        AddServerTag("bots");
-        AddServerTag("tfbots");
-        RemoveServerTag("rcbot2");
-
         PrintToServer("[%s] Valve Navigation Meshes detected, adding TFBot clients...", PLUGIN_NAME, BotQuota);
         PrintToServer("[%s] tf_bot_quota: %d.", PLUGIN_NAME, BotQuota);
     }
@@ -127,10 +110,6 @@ public void OnConfigsExecuted()
         SetConVarInt(tf_bot_quota, 0);
 
         KickRCBots();
-
-        RemoveServerTag("bots");
-        RemoveServerTag("rcbot2");
-        RemoveServerTag("tfbots");
 
         PrintToServer("[%s] Bots are unsupported on this map.", PLUGIN_NAME);
     }
