@@ -32,11 +32,11 @@ jobs:
         uses: rumblefrog/setup-sp@master
         with:
           version: '1.13.x'
-          version-file: ./tfbots_fun.sp
+          version-file: ./bots_fun.sp
 
       - name: Compile plugins
         run: |
-          for file in tfbots_fun.sp
+          for file in bots_fun.sp
           do
             echo -e "\nCompiling $file..."
             spcomp -E -w234 -O2 -v2 -i include $file
@@ -48,19 +48,19 @@ jobs:
       - name: Move smx to plugins directory
         run: |
           mkdir -p plugins
-          mv tfbots_fun.smx plugins/
+          mv bots_fun.smx plugins/
 
       - name: Create scripting directory and move source code
         run: |
-          mkdir -p scripting/tfbots_fun
-          mv tfbots_fun.sp scripting/
-          mv tfbots_fun/* scripting/tfbots_fun/
+          mkdir -p scripting/bots_fun
+          mv bots_fun.sp scripting/
+          mv bots_fun/* scripting/bots_fun/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: "TFBots Fun"
+          name: "Bots Fun"
           path: |
-            plugins/tfbots_fun.smx
-            scripting/tfbots_fun.sp
-            scripting/tfbots_fun/**
+            plugins/bots_fun.smx
+            scripting/bots_fun.sp
+            scripting/bots_fun/**
