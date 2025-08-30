@@ -11,7 +11,7 @@
 
 #include "bots_fun/stocks.sp"
 
-#define PLUGIN_NAME   "Bots Fun"
+#define PLUGIN_NAME   "Bots Fun" // For now, just Team Fortress 2.
 #define PLUGIN_CONFIG "addons/sourcemod/configs/bots_fun.cfg"
 #define PREFIX       "{red}Bots Fun{default}"
 #define PREFIX_DEBUG "{red}Bots Fun{default} | {ghostwhite}Debug{default}"
@@ -61,11 +61,15 @@ public void OnPluginStart()
     /* Events */
     HookEvent("post_inventory_application", Event_PlayerModelUpdate);
     HookEvent("teamplay_flag_event", Event_PlayerModelUpdate);
-    HookEvent("teamplay_suddendeath_begin", Event_RoundStart_Arena);
-    HookEvent("arena_round_start", Event_RoundStart_Arena);
+    //HookEvent("teamplay_suddendeath_begin", Event_RoundStart_Arena);
+    //HookEvent("arena_round_start", Event_RoundStart_Arena);
     HookEvent("teamplay_round_win", Event_RoundEnd);
-    HookEvent("player_spawn", Event_PlayerSpawn);
-    HookEvent("player_death", Event_PlayerDeath);
+    //HookEvent("player_spawn", Event_PlayerSpawn);
+    //HookEvent("player_death", Event_PlayerDeath);
+    HookEvent("player_connect", Event_PlayerStatus, EventHookMode_Pre);
+    HookEvent("player_connect_client", Event_PlayerStatus, EventHookMode_Pre);
+    HookEvent("player_disconnect", Event_PlayerStatus, EventHookMode_Pre);
+    HookEvent("player_info", Event_PlayerStatus, EventHookMode_Pre);
 
     /* Commands */
     RegConsoleCmd("sm_nav_info", Command_NavInfo, "Display information about bot support.");
@@ -169,36 +173,36 @@ public Action Timer_SetNameFromModel(Handle timer, any userid)
 
     return Plugin_Stop;
 }
-
+/*
 public void Event_RoundStart_Arena(Event event, const char[] name, bool dontBroadcast)
 {
-    /*
     for (int i = 1; i <= MaxClients; i++)
     {
         bIsAlive[i] = IsClientInGame(i) && IsPlayerAlive(i) && !IsFakeClient(i);
     }
-    */
 }
-
+*/
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
     KickRCBots();
 }
-
+/*
 public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
-    /*
     int client = GetClientOfUserId(event.GetInt("userid"));
     bIsAlive[client] = IsPermaDeathMode() && !IsFakeClient(client);
-    */
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
-    /*
     int client = GetClientOfUserId(event.GetInt("userid"));
     OnClientDisconnect(client);
-    */
+}
+*/
+public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadcast)
+{
+    event.BroadcastDisabled = event.GetBool("bot");
+    return Plugin_Changed;
 }
 
 /* ========[Forwards]======== */
