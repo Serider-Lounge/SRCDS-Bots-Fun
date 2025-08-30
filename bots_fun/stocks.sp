@@ -93,3 +93,13 @@ stock int GetHumanClientCount(bool inGameOnly=true)
 
     return GetClientCount(inGameOnly) - botCount;
 }
+
+/**
+ * Check if the current game mode is "perma-death" (i.e. Arena Mode, Versus Saxton Hale, ...).
+ * 
+ * @return True if the current game mode is "perma-death"
+ */
+stock bool IsPermaDeathMode()
+{
+    return IsGameMode("arena") || GameRules_GetProp("m_iRoundState") == 7;
+}

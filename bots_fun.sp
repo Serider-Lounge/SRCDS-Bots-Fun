@@ -31,12 +31,14 @@ ConVar gcvar_PluginEnabled,
 
 int BotQuota;
 
+//bool bIsAlive[MAXPLAYERS + 1];
+
 Handle g_hConfigTrie = INVALID_HANDLE;
 
-/* ========[Core]======== */
+/* ========[Forwards]======== */
 public void OnPluginStart()
 {
-    // ConVars
+    /* ConVars */
     rcbot_bot_quota_interval = FindConVar("rcbot_bot_quota_interval");
     tf_bot_quota = FindConVar("tf_bot_quota");
 
@@ -52,15 +54,20 @@ public void OnPluginStart()
     
     BotQuota = RoundFloat(gcvar_BotRatio.FloatValue * GetMaxHumanPlayers());
 
-    // Configs
+    /* Configs */
     AutoExecConfig(true, "bots_fun");
     LoadPluginConfig();
 
-    // Events/Listeners
+    /* Events */
     HookEvent("post_inventory_application", Event_PlayerModelUpdate);
     HookEvent("teamplay_flag_event", Event_PlayerModelUpdate);
+    HookEvent("teamplay_suddendeath_begin", Event_RoundStart_Arena);
+    HookEvent("arena_round_start", Event_RoundStart_Arena);
+    HookEvent("teamplay_round_win", Event_RoundEnd);
+    HookEvent("player_spawn", Event_PlayerSpawn);
+    HookEvent("player_death", Event_PlayerDeath);
 
-    // Commands
+    /* Commands */
     RegConsoleCmd("sm_nav_info", Command_NavInfo, "Display information about bot support.");
     
     RegAdminCmd("sm_nav_generate", Command_NavGenerate, ADMFLAG_CHEATS, "Generate navigation meshes.");
@@ -122,6 +129,11 @@ public void OnConfigsExecuted()
     }
 }
 
+public void OnMapEnd()
+{
+    KickRCBots();
+}
+
 /* ========[ConVars]======== */
 public void ConVar_BotRatio(ConVar convar, const char[] oldValue, const char[] newValue)
 {
@@ -145,17 +157,72 @@ public Action Timer_SetNameFromModel(Handle timer, any userid)
     int client = GetClientOfUserId(userid);
     
     char path[PLATFORM_MAX_PATH],
-         botname[PLATFORM_MAX_PATH];
+         botName[PLATFORM_MAX_PATH];
 
     GetClientModel(client, path, sizeof(path));
 
-    if (GetBotName(path, botname, sizeof(botname)))
+    if (GetBotName(path, botName, sizeof(botName)))
     {
-        SetClientName(client, botname);
+        SetClientName(client, botName);
         return Plugin_Stop;
     }
 
     return Plugin_Stop;
+}
+
+public void Event_RoundStart_Arena(Event event, const char[] name, bool dontBroadcast)
+{
+    /*
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        bIsAlive[i] = IsClientInGame(i) && IsPlayerAlive(i) && !IsFakeClient(i);
+    }
+    */
+}
+
+public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
+{
+    KickRCBots();
+}
+
+public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
+{
+    /*
+    int client = GetClientOfUserId(event.GetInt("userid"));
+    bIsAlive[client] = IsPermaDeathMode() && !IsFakeClient(client);
+    */
+}
+
+public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
+{
+    /*
+    int client = GetClientOfUserId(event.GetInt("userid"));
+    OnClientDisconnect(client);
+    */
+}
+
+/* ========[Forwards]======== */
+public void OnClientDisconnect(int client)
+{
+    /*
+    if (IsPermaDeathMode() && !IsFakeClient(client))
+    {
+        bIsAlive[client] = false;
+
+        for (int i = 1; i <= MaxClients; i++)
+        {
+            char unassigned[8];
+
+            if (bIsAlive[i])
+            {
+                return;
+            }
+        }
+
+        IntToString(view_as<int>(TFTeam_Unassigned), unassigned, sizeof(unassigned));
+        CheatCommand("mp_forcewin", unassigned);
+    }
+    */
 }
 
 /* ========[Commands]======== */
@@ -188,7 +255,7 @@ public Action Command_NavGenerateIncremental(int client, int args)
 }
 
 /* ========[configs/bots_fun.cfg]======== */
-public void LoadPluginConfig()
+void LoadPluginConfig()
 {
     if (g_hConfigTrie != INVALID_HANDLE)
     {
@@ -210,12 +277,12 @@ public void LoadPluginConfig()
         {
             do
             {
-                char model[64], botname[128];
+                char model[64], botName[128];
                 kv.GetSectionName(model, sizeof(model));
-                kv.GetString(NULL_STRING, botname, sizeof(botname), "");
-                if (model[0] && botname[0])
+                kv.GetString(NULL_STRING, botName, sizeof(botName), "");
+                if (model[0] && botName[0])
                 {
-                    SetTrieString(g_hConfigTrie, model, botname, true);
+                    SetTrieString(g_hConfigTrie, model, botName, true);
                 }
             } while (kv.GotoNextKey(false));
             kv.GoBack();
@@ -224,15 +291,7 @@ public void LoadPluginConfig()
     delete kv;
 }
 
-/**
- * Get bot name from model using the configuration trie.
- * 
- * @param  path    Model path
- * @param  buffer  Bot Name
- * @param  maxlen  Buffer size
- * @return         True if a bot name was found
- */
-stock bool GetBotName(const char[] path, char[] buffer, int maxlen)
+bool GetBotName(const char[] path, char[] buffer, int maxlen)
 {
     if (g_hConfigTrie == INVALID_HANDLE)
         return false;
