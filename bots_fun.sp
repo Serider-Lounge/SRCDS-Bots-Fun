@@ -6,12 +6,15 @@
 #include <tf2_stocks>
 #include <serider/navmesh>
 #include <multicolors>
+#include <keyvalues>
+#include <string>
 
-#include "tfbots_fun/stocks.sp"
+#include "bots_fun/stocks.sp"
 
-#define PLUGIN_NAME   "TFBots Fun"
-#define PREFIX       "{red}TFBots Fun{default}"
-#define PREFIX_DEBUG "{red}TFBots Fun{default} | {lightyellow}Debug{default}"
+#define PLUGIN_NAME   "Bots Fun"
+#define PLUGIN_CONFIG "addons/sourcemod/configs/bots_fun.cfg"
+#define PREFIX       "{red}Bots Fun{default}"
+#define PREFIX_DEBUG "{red}Bots Fun{default} | {ghostwhite}Debug{default}"
 /*
 enum FlagEvent
 {
@@ -28,6 +31,8 @@ ConVar gcvar_PluginEnabled,
 
 int BotQuota;
 
+Handle g_hConfigTrie = INVALID_HANDLE;
+
 /* ========[Core]======== */
 public void OnPluginStart()
 {
@@ -35,11 +40,11 @@ public void OnPluginStart()
     rcbot_bot_quota_interval = FindConVar("rcbot_bot_quota_interval");
     tf_bot_quota = FindConVar("tf_bot_quota");
 
-    gcvar_PluginEnabled = CreateConVar("sm_tfbot_fun_enabled", "1",
+    gcvar_PluginEnabled = CreateConVar("sm_bot_enabled", "1",
                                        "Toggle the plugin.",
                                         FCVAR_REPLICATED);
     HookConVarChange(gcvar_PluginEnabled, ConVar_BotRatio);
-    gcvar_BotRatio = CreateConVar("sm_tf_bot_ratio", "0.25",
+    gcvar_BotRatio = CreateConVar("sm_bot_ratio", "0.25",
                                   "Ratio of 'tf_bot_quota' to max players.",
                                   FCVAR_REPLICATED,
                                   true, 0.0, true, 1.0);
@@ -47,9 +52,11 @@ public void OnPluginStart()
     
     BotQuota = RoundFloat(gcvar_BotRatio.FloatValue * GetMaxHumanPlayers());
 
-    AutoExecConfig(true, "tfbots_fun");
+    // Configs
+    AutoExecConfig(true, "bots_fun");
+    LoadPluginConfig();
 
-    // Events
+    // Events/Listeners
     HookEvent("post_inventory_application", Event_PlayerModelUpdate);
     HookEvent("teamplay_flag_event", Event_PlayerModelUpdate);
 
@@ -136,78 +143,30 @@ public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBro
 public Action Timer_SetNameFromModel(Handle timer, any userid)
 {
     int client = GetClientOfUserId(userid);
+    
+    char path[PLATFORM_MAX_PATH],
+         botname[PLATFORM_MAX_PATH];
 
-    // TO-DO: Move these to a config file, but I have no idea how to implement it (yet?).
-    // - Heapons
-    static const char classes[][2][32] = {
-        {"scout", "Scout"},
-        {"soldier", "Soldier"},
-        {"pyro", "Pyro"},
-        {"demo", "Demoman"},
-        {"heavy", "Heavy Weapons Guy"},
-        {"engineer", "Engineer"},
-        {"medic", "Medic"},
-        {"sniper", "Sniper"},
-        {"spy", "Spy"},
-        {"civilian", "Civilian"},
-        {"merc", "Mercenary"},
-        {"saxton_hale", "Saxton Hale"},
-        {"mecha_hale", "Mecha Hale"},
-        {"hell_hale", "Saxton Hell"},
-        {"sentry_buster", "Sentry Buster"},
-        {"skeleton_sniper", "Skeleton"},
-        {"giant_shako", "Demopan"},
-        {"epic/scout", "Epic Scout"},
-        {"gaben", "Gabe Newell"},
-        {"gentlespy", "Gentlespy"},
-        {"graymann", "Gray Mann"},
-        {"ninjaspy", "Ninja Spy"},
-        {"seeman", "Seeman"},
-        {"seeldier", "Seeldier"},
-        {"cbs", "Christian Brutal Sniper"},
-        {"easter_demo", "Easter Demo"},
-        {"hhh_jr", "HHH Jr."},
-        {"headless_hatman", "Horseless Headless Horseman"},
-        {"vagineer", "Vagineer"},
-        {"merasmus", "Merasmus"},
-        {"saxtron", "Saxtron H413"},
-        {"infected/hoomer", "Boomer"},
-        {"infected/coomer", "Charger"},
-        {"infected/hank", "Tank"},
-        {"infected/scunter", "Hunter"},
-        {"infected/spyro", "Spitter"},
-        {"infected/wanker", "Smoker"},
-        {"infected/sock", "Jockey"},
-        {"infected/benic", "Screamer"},
-        {"mobster", "Mobster"},
-        {"julius", "Julius"},
-        {"pauling", "Ms. Pauling"},
-        {"bot_worker", "Worker"}
-    };
+    GetClientModel(client, path, sizeof(path));
 
-    char model[PLATFORM_MAX_PATH];
-    GetClientModel(client, model, sizeof(model));
-
-    for (int i = 0; i < sizeof(classes); i++)
+    if (GetBotName(path, botname, sizeof(botname)))
     {
-        if (StrContains(model, classes[i][0], false) != -1)
-        {
-            SetClientName(client, classes[i][1]);
-            break;
-        }
+        SetClientName(client, botname);
+        return Plugin_Stop;
     }
+
     return Plugin_Stop;
 }
 
 /* ========[Commands]======== */
 public Action Command_NavInfo(int client, int args)
 {
-    CReplyToCommand(client, "[%s]:\n- {olive}Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default} ({lightcyan}%s{default})\n- {olive}Area Count{default}: {lightcyan}%d",
-                    PREFIX_DEBUG,
-                    RCBot2_IsWaypointAvailable() ? "RCBot2" : NavMesh_IsLoaded() ? "TFBot" : "N/A",
-                    RCBot2_IsWaypointAvailable() ? rcbot_bot_quota_interval.IntValue : tf_bot_quota.IntValue,
-                    RCBot2_IsWaypointAvailable() ? "rcbot_bot_quota_interval" : NavMesh_IsLoaded() ? "tf_bot_quota" : "N/A",
-                    NavMesh_GetNavAreaCount());
+    CReplyToCommand(client,
+        "[%s]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default}\n- {olive}Area Count{default}: {lightcyan}%d",
+        PREFIX_DEBUG,
+        RCBot2_IsWaypointAvailable() ? "RCBot2" : NavMesh_IsLoaded() ? "TFBot" : "Unsupported Map",
+        RCBot2_IsWaypointAvailable() ? rcbot_bot_quota_interval.IntValue : tf_bot_quota.IntValue,
+        NavMesh_GetNavAreaCount());
 
     return Plugin_Handled;
 }
@@ -226,4 +185,78 @@ public Action Command_NavGenerateIncremental(int client, int args)
 
     CReplyToCommand(client, "[%s] Generating navigation meshes incrementally...", PREFIX_DEBUG);
     return Plugin_Handled;
+}
+
+/* ========[configs/bots_fun.cfg]======== */
+public void LoadPluginConfig()
+{
+    if (g_hConfigTrie != INVALID_HANDLE)
+    {
+        CloseHandle(g_hConfigTrie);
+    }
+    g_hConfigTrie = CreateTrie();
+
+    KeyValues kv = new KeyValues("Config");
+    if (!kv.ImportFromFile(PLUGIN_CONFIG))
+    {
+        PrintToServer("[%s] Failed to load 'bots_fun.cfg'", PLUGIN_NAME);
+        delete kv;
+        return;
+    }
+
+    if (kv.JumpToKey("Bot Names"))
+    {
+        if (kv.GotoFirstSubKey(false))
+        {
+            do
+            {
+                char model[64], botname[128];
+                kv.GetSectionName(model, sizeof(model));
+                kv.GetString(NULL_STRING, botname, sizeof(botname), "");
+                if (model[0] && botname[0])
+                {
+                    SetTrieString(g_hConfigTrie, model, botname, true);
+                }
+            } while (kv.GotoNextKey(false));
+            kv.GoBack();
+        }
+    }
+    delete kv;
+}
+
+/**
+ * Get bot name from model using the configuration trie.
+ * 
+ * @param  path    Model path
+ * @param  buffer  Bot Name
+ * @param  maxlen  Buffer size
+ * @return         True if a bot name was found
+ */
+stock bool GetBotName(const char[] path, char[] buffer, int maxlen)
+{
+    if (g_hConfigTrie == INVALID_HANDLE)
+        return false;
+
+    char mdl[PLATFORM_MAX_PATH];
+    int len = strlen(path);
+    int start = len - 1;
+
+    while (start >= 0 && path[start] != '/' && path[start] != '\\')
+        start--;
+    start++;
+    int end = len - 1;
+
+    while (end > start && path[end] != '.')
+        end--;
+    if (end > start)
+    {
+        strcopy(mdl, sizeof(mdl), path[start]);
+        mdl[end - start] = '\0';
+    }
+    else
+    {
+        strcopy(mdl, sizeof(mdl), path[start]);
+    }
+
+    return GetTrieString(g_hConfigTrie, mdl, buffer, maxlen);
 }

@@ -74,3 +74,22 @@ public Action Timer_CheatCommand(Handle timer, any data)
     delete pack;
     return Plugin_Stop;
 }
+
+/**
+ * Returns the human client count in the server.
+ *
+ * @param inGameOnly    If false connecting players are also counted.
+ * @return              Human client count in the server.
+ */
+stock int GetHumanClientCount(bool inGameOnly=true)
+{
+    int botCount = 0;
+
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsFakeClient(i))
+            botCount++;
+    }
+
+    return GetClientCount(inGameOnly) - botCount;
+}
