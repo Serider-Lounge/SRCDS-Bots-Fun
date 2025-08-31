@@ -28,7 +28,7 @@ ConVar g_ConVarPluginEnabled,
        g_ConVarRCBotQuotaMode,
        tf_bot_quota;
 
-int iBotQuota,
+int BotQuota,
     iAliveHumans;
 
 bool bIsAlive[MAXPLAYERS + 1];
@@ -70,14 +70,12 @@ public void OnPluginStart()
 
     HookEvent("player_spawn", Event_PlayerSpawn);
     HookEvent("player_death", Event_PlayerDeath);
+    HookEvent("player_team", Event_PlayerTeam);
 
     HookEvent("player_connect", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_connect_client", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_disconnect", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_info", Event_PlayerStatus, EventHookMode_Pre);
-
-    /* Listeners */
-    AddCommandListener(Command_JoinTeam, "jointeam");
 
     // Rounds
     HookEvent("teamplay_suddendeath_begin", Event_RoundStart_Arena);
@@ -97,12 +95,12 @@ public void OnPluginStart()
 
 public void OnConfigsExecuted()
 {
-    iBotQuota = RoundFloat(g_ConVarBotRatio.FloatValue * GetMaxHumanPlayers());
+    BotQuota = RoundFloat(g_ConVarBotRatio.FloatValue * GetMaxHumanPlayers());
 
     SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
 
     // Check if the plugin is enabled (or if it's MVM)
-    if (!g_ConVarPluginEnabled.BoolValue || IsGameMode("mann_vs_machine"))
+    if (!g_ConVarPluginEnabled.BoolValue)
     {
         SetConVarInt(g_ConVarRCBotQuota, 0);
         SetConVarInt(tf_bot_quota, 0);
@@ -116,26 +114,32 @@ public void OnConfigsExecuted()
     // Check for bot support
     if (RCBot2_IsWaypointAvailable())
     {
-        SetConVarInt(g_ConVarRCBotQuota, iBotQuota);
+        SetConVarInt(g_ConVarRCBotQuota, IsGameMode("mann_vs_machine") ? 10 : BotQuota);
         SetConVarInt(tf_bot_quota, 0);
 
         PrintToServer("[%s] RCBot2 waypoints detected, adding RCBot clients...", PLUGIN_NAME);
     }
     else if (NavMesh_IsLoaded())
     {
+        if (IsGameMode("mann_vs_machine"))
+        {
+            SetConVarInt(tf_bot_quota, 0);
+            return;
+        }
+
         ConVar tf_bot_offense_must_push_time = FindConVar("tf_bot_offense_must_push_time");
         int oldPushTime = GetConVarInt(tf_bot_offense_must_push_time);
 
         SetConVarInt(g_ConVarRCBotQuota, 0);
-        SetConVarInt(tf_bot_quota, iBotQuota);
+        SetConVarInt(tf_bot_quota, BotQuota);
         SetConVarInt(FindConVar("tf_bot_offense_must_push_time"),
                     (IsGameMode("player_destruction") || 
                      IsGameMode("robot_destruction")) ? -1 : oldPushTime > -1 ? oldPushTime : 120);
 
         KickRCBots();
 
-        PrintToServer("[%s] Valve Navigation Meshes detected, adding TFBot clients...", PLUGIN_NAME, iBotQuota);
-        PrintToServer("[%s] tf_bot_quota: %d.", PLUGIN_NAME, iBotQuota);
+        PrintToServer("[%s] Valve Navigation Meshes detected, adding TFBot clients...", PLUGIN_NAME, BotQuota);
+        PrintToServer("[%s] tf_bot_quota: %d.", PLUGIN_NAME, BotQuota);
     }
     else
     {
@@ -191,7 +195,26 @@ public void ConVar_RCBotQuota(ConVar convar, const char[] oldValue, const char[]
         }
     }
 
-    int toAdd = StringToInt(newValue) - currentRCBots;
+    char strRCBotQuotaMode[16];
+    GetConVarString(g_ConVarRCBotQuotaMode, strRCBotQuotaMode, sizeof(strRCBotQuotaMode));
+
+    int quota = StringToInt(newValue);
+
+    if (StrEqual(strRCBotQuotaMode, "fill"))
+    {
+        int humanCount = 0;
+        for (int i = 1; i <= MaxClients; i++)
+        {
+            if (IsClientInGame(i) && !IsFakeClient(i))
+                humanCount++;
+        }
+        quota -= humanCount;
+        quota += 1; // Fix margin error
+        if (quota < 0)
+            quota = 0;
+    }
+
+    int toAdd = quota - currentRCBots;
     if (toAdd > 0)
     {
         for (int i = 0; i < toAdd; i++)
@@ -284,6 +307,15 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     CheckAliveHumans(GetClientOfUserId(event.GetInt("userid")));
 }
 
+public Action Event_PlayerTeam(Event event, const char[] name, bool dontBroadcast)
+{
+    if (RCBot2_IsWaypointAvailable() && IsClientObserver(GetClientOfUserId(event.GetInt("userid"))))
+    {
+        RCBot2_CreateBot("");
+    }
+    return Plugin_Continue;
+}
+
 public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadcast)
 {
     event.BroadcastDisabled = event.GetBool("bot");
@@ -309,26 +341,11 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
     KickRCBots();
 }
 
-/* ========[Listeners]======== */
-public Action Command_JoinTeam(int client, const char[] command, int argc)
-{
-    if (argc > 0)
-    {
-        char arg[16];
-        GetCmdArg(1, arg, sizeof(arg));
-        if (StrEqual(arg, "spectate", false) && RCBot2_IsWaypointAvailable())
-        {
-            RCBot2_CreateBot("");
-        }
-    }
-    return Plugin_Continue;
-}
-
 /* ========[Commands]======== */
 public Action Command_NavInfo(int client, int args)
 {
     CReplyToCommand(client,
-        "[%s]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default}\n- {olive}Nav. Area Count{default}: {lightcyan}%d",
+        "[%s]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota{default}: {lightcyan}%d{default}\n- {olive}Nav. Area Count{default}: {lightcyan}%d",
         PREFIX_DEBUG,
         RCBot2_IsWaypointAvailable() ? "RCBot2" : NavMesh_IsLoaded() ? "TFBot" : "Unsupported Map",
         RCBot2_IsWaypointAvailable() ? g_ConVarRCBotQuota.IntValue : tf_bot_quota.IntValue,
