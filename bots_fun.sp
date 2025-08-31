@@ -6,8 +6,6 @@
 #include <tf2_stocks>
 #include <serider/navmesh>
 #include <multicolors>
-#include <keyvalues>
-#include <string>
 
 #include "bots_fun/stocks.sp"
 
@@ -24,8 +22,10 @@ enum FlagEvent
     TF_FLAGEVENT_DROPPED
 };
 */
-ConVar gcvar_PluginEnabled,
-       gcvar_BotRatio,
+ConVar g_ConVarPluginEnabled,
+       g_ConVarBotRatio,
+       g_ConVarRCBotQuota,
+       g_ConVarRCBotQuotaMode,
        rcbot_bot_quota_interval,
        tf_bot_quota;
 
@@ -43,17 +43,23 @@ public void OnPluginStart()
     rcbot_bot_quota_interval = FindConVar("rcbot_bot_quota_interval");
     tf_bot_quota = FindConVar("tf_bot_quota");
 
-    gcvar_PluginEnabled = CreateConVar("sm_bot_enabled", "1",
+    g_ConVarPluginEnabled = CreateConVar("sm_bot_enabled", "1",
                                        "Toggle the plugin.",
                                         FCVAR_REPLICATED);
-    HookConVarChange(gcvar_PluginEnabled, ConVar_BotRatio);
-    gcvar_BotRatio = CreateConVar("sm_bot_ratio", "0.25",
+    HookConVarChange(g_ConVarPluginEnabled, ConVar_BotRatio);
+    g_ConVarBotRatio = CreateConVar("sm_bot_ratio", "0.25",
                                   "Ratio of 'tf_bot_quota' to max players.",
                                   FCVAR_REPLICATED,
                                   true, 0.0, true, 1.0);
-    HookConVarChange(gcvar_BotRatio, ConVar_BotRatio);
-    
-    iBotQuota = RoundFloat(gcvar_BotRatio.FloatValue * GetMaxHumanPlayers());
+    HookConVarChange(g_ConVarBotRatio, ConVar_BotRatio);
+    g_ConVarRCBotQuota = CreateConVar("rcbot_bot_quota", "0",
+                                      "Determines the total number of rcbots in the game.",
+                                      FCVAR_REPLICATED,
+                                      true, 0.0, true, float(MAXPLAYERS));
+    HookConVarChange(g_ConVarRCBotQuota, ConVar_RCBotQuota);
+    g_ConVarRCBotQuotaMode = CreateConVar("rcbot_bot_quota_mode", "normal",
+                                          "Determines the type of quota. Allowed values: 'normal', 'fill', and 'match'. If 'fill', the server will adjust bots to keep N players in the game, where N is bot_quota. If 'match', the server will maintain a 1:N ratio of humans to bots, where N is bot_quota.",
+                                          FCVAR_REPLICATED);
 
     /* Configs */
     AutoExecConfig(true, "bots_fun");
@@ -90,12 +96,15 @@ public void OnPluginStart()
 
 public void OnConfigsExecuted()
 {
+    iBotQuota = RoundFloat(g_ConVarBotRatio.FloatValue * GetMaxHumanPlayers());
+
     SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
 
     // Check if the plugin is enabled (or if it's MVM)
-    if (!gcvar_PluginEnabled.BoolValue || IsGameMode("mann_vs_machine"))
+    if (!g_ConVarPluginEnabled.BoolValue || IsGameMode("mann_vs_machine"))
     {
-        SetConVarInt(rcbot_bot_quota_interval, 0);
+        //SetConVarInt(rcbot_bot_quota_interval, 0);
+        SetConVarInt(g_ConVarRCBotQuota, 0);
         SetConVarInt(tf_bot_quota, 0);
 
         KickRCBots();
@@ -107,7 +116,8 @@ public void OnConfigsExecuted()
     // Check for bot support
     if (RCBot2_IsWaypointAvailable())
     {
-        SetConVarInt(rcbot_bot_quota_interval, 1);
+        //SetConVarInt(rcbot_bot_quota_interval, 1);
+        SetConVarInt(g_ConVarRCBotQuota, iBotQuota);
         SetConVarInt(tf_bot_quota, 0);
 
         PrintToServer("[%s] RCBot2 waypoints detected, adding RCBot clients...", PLUGIN_NAME);
@@ -119,7 +129,8 @@ public void OnConfigsExecuted()
         ConVar tf_bot_offense_must_push_time = FindConVar("tf_bot_offense_must_push_time");
         int oldPushTime = GetConVarInt(tf_bot_offense_must_push_time);
 
-        SetConVarInt(rcbot_bot_quota_interval, 0);
+        //SetConVarInt(rcbot_bot_quota_interval, 0);
+        SetConVarInt(g_ConVarRCBotQuota, 0);
         SetConVarInt(tf_bot_quota, iBotQuota);
         SetConVarInt(FindConVar("tf_bot_offense_must_push_time"),
                     (IsGameMode("player_destruction") || 
@@ -132,7 +143,8 @@ public void OnConfigsExecuted()
     }
     else
     {
-        SetConVarInt(rcbot_bot_quota_interval, 0);
+        //SetConVarInt(rcbot_bot_quota_interval, 0);
+        SetConVarInt(g_ConVarRCBotQuota, 0);
         SetConVarInt(tf_bot_quota, 0);
 
         KickRCBots();
@@ -150,8 +162,7 @@ public void OnClientDisconnect(int client)
 {
     if (IsPermaDeathMode())
     {
-        if (IsFakeClient(client))
-            return;
+        if (IsFakeClient(client)) return;
 
         if (bIsAlive[client])
         {
@@ -169,12 +180,55 @@ public void OnClientDisconnect(int client)
 
         //CPrintToChatAll("[%s] Player {unique}%N{default} died! Alive Humans: %d", PREFIX_DEBUG, client, iAliveHumans);
     }
+
+    char strRCBotQuotaMode[16];
+    GetConVarString(g_ConVarRCBotQuotaMode, strRCBotQuotaMode, sizeof(strRCBotQuotaMode));
+    if (!IsFakeClient(client) && StrEqual(strRCBotQuotaMode, "fill"))
+    {
+        RCBot2_CreateBot("");
+    }
 }
 
 /* ========[ConVars]======== */
 public void ConVar_BotRatio(ConVar convar, const char[] oldValue, const char[] newValue)
 {
     OnConfigsExecuted();
+}
+
+public void ConVar_RCBotQuota(ConVar convar, const char[] oldValue, const char[] newValue)
+{
+    //int oldQuota = StringToInt(oldValue);
+    int newQuota = StringToInt(newValue);
+
+    int currentRCBots = 0;
+    for (int i = 1; i <= MaxClients; i++)
+    {
+        if (IsClientInGame(i) && IsFakeClient(i) && IsRCBot2Client(i))
+        {
+            currentRCBots++;
+        }
+    }
+
+    int toAdd = newQuota - currentRCBots;
+    if (toAdd > 0)
+    {
+        for (int i = 0; i < toAdd; i++)
+        {
+            RCBot2_CreateBot("");
+        }
+    }
+    else if (toAdd < 0)
+    {
+        int toRemove = -toAdd;
+        for (int i = 1; i <= MaxClients && toRemove > 0; i++)
+        {
+            if (IsClientInGame(i) && IsFakeClient(i) && IsRCBot2Client(i))
+            {
+                KickClient(i);
+                toRemove--;
+            }
+        }
+    }
 }
 
 /* ========[Events]======== */
@@ -214,8 +268,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 
     if (IsPermaDeathMode())
     {
-        if (IsFakeClient(client))
-            return;
+        if (IsFakeClient(client)) return;
 
         if (!bIsAlive[client] && IsPlayerAlive(client))
         {
@@ -225,12 +278,29 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 
         //CPrintToChatAll("[%s] Player {unique}%N{default} spawned! Alive Humans: %d", PREFIX_DEBUG, client, iAliveHumans);
     }
+
+    char strRCBotQuotaMode[16];
+    GetConVarString(g_ConVarRCBotQuotaMode, strRCBotQuotaMode, sizeof(strRCBotQuotaMode));
+    if (!IsFakeClient(client) && StrEqual(strRCBotQuotaMode, "fill"))
+    {
+        int iClientTeam = GetClientTeam(client);
+        if (iClientTeam > 1)
+        {
+            for (int i = 1; i <= MaxClients; i++)
+            {
+                if (IsClientInGame(i) && IsFakeClient(i) && IsRCBot2Client(i) && GetClientTeam(i) == iClientTeam)
+                {
+                    KickClient(i);
+                    break;
+                }
+            }
+        }
+    }
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
-
     OnClientDisconnect(client);
 }
 

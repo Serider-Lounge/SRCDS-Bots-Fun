@@ -1,13 +1,14 @@
 /**
  * Kick all RCBot2 clients.
  */
-stock void KickRCBots()
+stock void KickRCBots(bool rejoin=true)
 {
     for (int i = 1; i <= MaxClients; i++)
     {
         if (IsRCBot2Client(i))
         {
             KickClient(i);
+            if (rejoin) RCBot2_CreateBot("");
         }
     }
 }
