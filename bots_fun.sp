@@ -26,7 +26,6 @@ ConVar g_ConVarPluginEnabled,
        g_ConVarBotRatio,
        g_ConVarRCBotQuota,
        g_ConVarRCBotQuotaMode,
-       rcbot_bot_quota_interval,
        tf_bot_quota;
 
 int iBotQuota,
@@ -40,7 +39,6 @@ Handle g_hConfigTrie = INVALID_HANDLE;
 public void OnPluginStart()
 {
     /* ConVars */
-    rcbot_bot_quota_interval = FindConVar("rcbot_bot_quota_interval");
     tf_bot_quota = FindConVar("tf_bot_quota");
 
     g_ConVarPluginEnabled = CreateConVar("sm_bot_enabled", "1",
@@ -334,10 +332,10 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 public Action Command_NavInfo(int client, int args)
 {
     CReplyToCommand(client,
-        "[%s]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default}\n- {olive}Area Count{default}: {lightcyan}%d",
+        "[%s]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default}\n- {olive}Nav. Area Count{default}: {lightcyan}%d",
         PREFIX_DEBUG,
         RCBot2_IsWaypointAvailable() ? "RCBot2" : NavMesh_IsLoaded() ? "TFBot" : "Unsupported Map",
-        RCBot2_IsWaypointAvailable() ? rcbot_bot_quota_interval.IntValue : tf_bot_quota.IntValue,
+        RCBot2_IsWaypointAvailable() ? g_ConVarRCBotQuota.IntValue : tf_bot_quota.IntValue,
         NavMesh_GetNavAreaCount());
 
     return Plugin_Handled;
