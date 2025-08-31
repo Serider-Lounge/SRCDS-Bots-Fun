@@ -97,7 +97,7 @@ stock int GetHumanClientCount(bool inGameOnly=true)
 /**
  * Check if the current game mode is "perma-death" (i.e. Arena Mode, Versus Saxton Hale, ...).
  * 
- * @return True if the current game mode is "perma-death"
+ * @return True if the current game mode is Arena Mode or Sudden Death.
  */
 stock bool IsPermaDeathMode()
 {

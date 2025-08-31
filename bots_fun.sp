@@ -29,9 +29,10 @@ ConVar gcvar_PluginEnabled,
        rcbot_bot_quota_interval,
        tf_bot_quota;
 
-int BotQuota;
+int iBotQuota,
+    iAliveHumans;
 
-//bool bIsAlive[MAXPLAYERS + 1];
+bool bIsAlive[MAXPLAYERS + 1];
 
 Handle g_hConfigTrie = INVALID_HANDLE;
 
@@ -52,28 +53,35 @@ public void OnPluginStart()
                                   true, 0.0, true, 1.0);
     HookConVarChange(gcvar_BotRatio, ConVar_BotRatio);
     
-    BotQuota = RoundFloat(gcvar_BotRatio.FloatValue * GetMaxHumanPlayers());
+    iBotQuota = RoundFloat(gcvar_BotRatio.FloatValue * GetMaxHumanPlayers());
 
     /* Configs */
     AutoExecConfig(true, "bots_fun");
     LoadPluginConfig();
 
     /* Events */
+    // Players
     HookEvent("post_inventory_application", Event_PlayerModelUpdate);
     HookEvent("teamplay_flag_event", Event_PlayerModelUpdate);
-    //HookEvent("teamplay_suddendeath_begin", Event_RoundStart_Arena);
-    //HookEvent("arena_round_start", Event_RoundStart_Arena);
-    HookEvent("teamplay_round_win", Event_RoundEnd);
-    //HookEvent("player_spawn", Event_PlayerSpawn);
-    //HookEvent("player_death", Event_PlayerDeath);
+
+    HookEvent("player_spawn", Event_PlayerSpawn);
+    HookEvent("player_death", Event_PlayerDeath);
+
     HookEvent("player_connect", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_connect_client", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_disconnect", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_info", Event_PlayerStatus, EventHookMode_Pre);
 
+    // Rounds
+    HookEvent("teamplay_suddendeath_begin", Event_RoundStart_Arena);
+    HookEvent("arena_round_start", Event_RoundStart_Arena);
+    HookEvent("teamplay_round_win", Event_RoundEnd);
+
     /* Commands */
+    // @everyone
     RegConsoleCmd("sm_nav_info", Command_NavInfo, "Display information about bot support.");
     
+    // @admins
     RegAdminCmd("sm_nav_generate", Command_NavGenerate, ADMFLAG_CHEATS, "Generate navigation meshes.");
     RegAdminCmd("sm_nav_generate_incremental", Command_NavGenerateIncremental, ADMFLAG_CHEATS, "Generate navigation meshes incrementally.");
     //RegAdminCmd("sm_nav_copy", Command_NavCopy, ADMFLAG_CHEATS, "Steal a '.nav' file from another map.");
@@ -112,15 +120,15 @@ public void OnConfigsExecuted()
         int oldPushTime = GetConVarInt(tf_bot_offense_must_push_time);
 
         SetConVarInt(rcbot_bot_quota_interval, 0);
-        SetConVarInt(tf_bot_quota, BotQuota);
+        SetConVarInt(tf_bot_quota, iBotQuota);
         SetConVarInt(FindConVar("tf_bot_offense_must_push_time"),
                     (IsGameMode("player_destruction") || 
                      IsGameMode("robot_destruction")) ? -1 : oldPushTime > -1 ? oldPushTime : 120);
 
         KickRCBots();
 
-        PrintToServer("[%s] Valve Navigation Meshes detected, adding TFBot clients...", PLUGIN_NAME, BotQuota);
-        PrintToServer("[%s] tf_bot_quota: %d.", PLUGIN_NAME, BotQuota);
+        PrintToServer("[%s] Valve Navigation Meshes detected, adding TFBot clients...", PLUGIN_NAME, iBotQuota);
+        PrintToServer("[%s] tf_bot_quota: %d.", PLUGIN_NAME, iBotQuota);
     }
     else
     {
@@ -138,6 +146,31 @@ public void OnMapEnd()
     KickRCBots();
 }
 
+public void OnClientDisconnect(int client)
+{
+    if (IsPermaDeathMode())
+    {
+        if (IsFakeClient(client))
+            return;
+
+        if (bIsAlive[client])
+        {
+            iAliveHumans--;
+            if (iAliveHumans < 0)
+                iAliveHumans = 0;
+            else if (iAliveHumans < 1)
+            {
+                char teamUnassigned[8];
+                IntToString(view_as<int>(TFTeam_Unassigned), teamUnassigned, sizeof(teamUnassigned));
+                CheatCommand("mp_forcewin", teamUnassigned);
+            }
+        }
+        bIsAlive[client] = false;
+
+        //CPrintToChatAll("[%s] Player {unique}%N{default} died! Alive Humans: %d", PREFIX_DEBUG, client, iAliveHumans);
+    }
+}
+
 /* ========[ConVars]======== */
 public void ConVar_BotRatio(ConVar convar, const char[] oldValue, const char[] newValue)
 {
@@ -145,6 +178,7 @@ public void ConVar_BotRatio(ConVar convar, const char[] oldValue, const char[] n
 }
 
 /* ========[Events]======== */
+// Clients
 public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBroadcast)
 {
     int userid = event.GetInt("userid");
@@ -173,60 +207,57 @@ public Action Timer_SetNameFromModel(Handle timer, any userid)
 
     return Plugin_Stop;
 }
-/*
-public void Event_RoundStart_Arena(Event event, const char[] name, bool dontBroadcast)
-{
-    for (int i = 1; i <= MaxClients; i++)
-    {
-        bIsAlive[i] = IsClientInGame(i) && IsPlayerAlive(i) && !IsFakeClient(i);
-    }
-}
-*/
-public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
-{
-    KickRCBots();
-}
-/*
+
 public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
-    bIsAlive[client] = IsPermaDeathMode() && !IsFakeClient(client);
+
+    if (IsPermaDeathMode())
+    {
+        if (IsFakeClient(client))
+            return;
+
+        if (!bIsAlive[client] && IsPlayerAlive(client))
+        {
+            iAliveHumans++;
+        }
+        bIsAlive[client] = IsPlayerAlive(client);
+
+        //CPrintToChatAll("[%s] Player {unique}%N{default} spawned! Alive Humans: %d", PREFIX_DEBUG, client, iAliveHumans);
+    }
 }
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
+
     OnClientDisconnect(client);
 }
-*/
+
 public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadcast)
 {
     event.BroadcastDisabled = event.GetBool("bot");
     return Plugin_Changed;
 }
 
-/* ========[Forwards]======== */
-public void OnClientDisconnect(int client)
+// Rounds
+public void Event_RoundStart_Arena(Event event, const char[] name, bool dontBroadcast)
 {
-    /*
-    if (IsPermaDeathMode() && !IsFakeClient(client))
+    iAliveHumans = 0;
+    for (int i = 1; i <= MaxClients; i++)
     {
-        bIsAlive[client] = false;
-
-        for (int i = 1; i <= MaxClients; i++)
-        {
-            char unassigned[8];
-
-            if (bIsAlive[i])
-            {
-                return;
-            }
-        }
-
-        IntToString(view_as<int>(TFTeam_Unassigned), unassigned, sizeof(unassigned));
-        CheatCommand("mp_forcewin", unassigned);
+        bIsAlive[i] = IsClientInGame(i) &&
+                      IsPlayerAlive(i) &&
+                      !IsFakeClient(i);
+        if (bIsAlive[i])
+            iAliveHumans++;
     }
-    */
+    //CPrintToChatAll("[%s] Round started! Alive Humans: %d", PREFIX_DEBUG, iAliveHumans);
+}
+
+public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
+{
+    KickRCBots();
 }
 
 /* ========[Commands]======== */
