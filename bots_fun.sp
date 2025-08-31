@@ -76,6 +76,9 @@ public void OnPluginStart()
     HookEvent("player_disconnect", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_info", Event_PlayerStatus, EventHookMode_Pre);
 
+    /* Listeners */
+    AddCommandListener(Command_JoinTeam, "jointeam");
+
     // Rounds
     HookEvent("teamplay_suddendeath_begin", Event_RoundStart_Arena);
     HookEvent("arena_round_start", Event_RoundStart_Arena);
@@ -101,7 +104,6 @@ public void OnConfigsExecuted()
     // Check if the plugin is enabled (or if it's MVM)
     if (!g_ConVarPluginEnabled.BoolValue || IsGameMode("mann_vs_machine"))
     {
-        //SetConVarInt(rcbot_bot_quota_interval, 0);
         SetConVarInt(g_ConVarRCBotQuota, 0);
         SetConVarInt(tf_bot_quota, 0);
 
@@ -114,20 +116,16 @@ public void OnConfigsExecuted()
     // Check for bot support
     if (RCBot2_IsWaypointAvailable())
     {
-        //SetConVarInt(rcbot_bot_quota_interval, 1);
         SetConVarInt(g_ConVarRCBotQuota, iBotQuota);
         SetConVarInt(tf_bot_quota, 0);
 
         PrintToServer("[%s] RCBot2 waypoints detected, adding RCBot clients...", PLUGIN_NAME);
-        PrintToServer("[%s] rcbot_bot_quota_interval: %d.", PLUGIN_NAME, rcbot_bot_quota_interval.IntValue);
-        PrintToServer("[%s] ⚠ WARNING ⚠: Make sure to comment out 'rcbot_bot_quota_interval' in 'addons/rcbot2/config/config.ini'!.", PLUGIN_NAME);
     }
     else if (NavMesh_IsLoaded())
     {
         ConVar tf_bot_offense_must_push_time = FindConVar("tf_bot_offense_must_push_time");
         int oldPushTime = GetConVarInt(tf_bot_offense_must_push_time);
 
-        //SetConVarInt(rcbot_bot_quota_interval, 0);
         SetConVarInt(g_ConVarRCBotQuota, 0);
         SetConVarInt(tf_bot_quota, iBotQuota);
         SetConVarInt(FindConVar("tf_bot_offense_must_push_time"),
@@ -141,7 +139,6 @@ public void OnConfigsExecuted()
     }
     else
     {
-        //SetConVarInt(rcbot_bot_quota_interval, 0);
         SetConVarInt(g_ConVarRCBotQuota, 0);
         SetConVarInt(tf_bot_quota, 0);
 
@@ -158,32 +155,22 @@ public void OnMapEnd()
 
 public void OnClientDisconnect(int client)
 {
-    if (IsPermaDeathMode())
-    {
-        if (IsFakeClient(client)) return;
+    CheckAliveHumans(client);
 
-        if (bIsAlive[client])
+    if (!IsClientObserver(client) && !IsFakeClient(client))
+    {
+        for (int i = 1; i <= MaxClients; i++)
         {
-            iAliveHumans--;
-            if (iAliveHumans < 0)
-                iAliveHumans = 0;
-            else if (iAliveHumans < 1)
+            if (!IsRCBot2Client(i)) continue;
+
+            if (GetClientTeam(i) == GetClientTeam(client))
             {
-                char teamUnassigned[8];
-                IntToString(view_as<int>(TFTeam_Unassigned), teamUnassigned, sizeof(teamUnassigned));
-                CheatCommand("mp_forcewin", teamUnassigned);
+                char name[MAX_NAME_LENGTH];
+                GetClientName(client, name, sizeof(name));
+                RCBot2_CreateBot(name);
+                break;
             }
         }
-        bIsAlive[client] = false;
-
-        //CPrintToChatAll("[%s] Player {unique}%N{default} died! Alive Humans: %d", PREFIX_DEBUG, client, iAliveHumans);
-    }
-
-    char strRCBotQuotaMode[16];
-    GetConVarString(g_ConVarRCBotQuotaMode, strRCBotQuotaMode, sizeof(strRCBotQuotaMode));
-    if (!IsFakeClient(client) && StrEqual(strRCBotQuotaMode, "fill"))
-    {
-        RCBot2_CreateBot("");
     }
 }
 
@@ -195,9 +182,6 @@ public void ConVar_BotRatio(ConVar convar, const char[] oldValue, const char[] n
 
 public void ConVar_RCBotQuota(ConVar convar, const char[] oldValue, const char[] newValue)
 {
-    //int oldQuota = StringToInt(oldValue);
-    int newQuota = StringToInt(newValue);
-
     int currentRCBots = 0;
     for (int i = 1; i <= MaxClients; i++)
     {
@@ -207,7 +191,7 @@ public void ConVar_RCBotQuota(ConVar convar, const char[] oldValue, const char[]
         }
     }
 
-    int toAdd = newQuota - currentRCBots;
+    int toAdd = StringToInt(newValue) - currentRCBots;
     if (toAdd > 0)
     {
         for (int i = 0; i < toAdd; i++)
@@ -273,20 +257,19 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
             iAliveHumans++;
         }
         bIsAlive[client] = IsPlayerAlive(client);
-
-        //CPrintToChatAll("[%s] Player {unique}%N{default} spawned! Alive Humans: %d", PREFIX_DEBUG, client, iAliveHumans);
     }
 
     char strRCBotQuotaMode[16];
     GetConVarString(g_ConVarRCBotQuotaMode, strRCBotQuotaMode, sizeof(strRCBotQuotaMode));
-    if (!IsFakeClient(client) && StrEqual(strRCBotQuotaMode, "fill"))
+    if (StrEqual(strRCBotQuotaMode, "fill"))
     {
-        int iClientTeam = GetClientTeam(client);
-        if (iClientTeam > 1)
+        if (!IsClientObserver(client) && !IsFakeClient(client))
         {
             for (int i = 1; i <= MaxClients; i++)
             {
-                if (IsClientInGame(i) && IsFakeClient(i) && IsRCBot2Client(i) && GetClientTeam(i) == iClientTeam)
+                if (!IsRCBot2Client(i)) continue;
+
+                if (GetClientTeam(i) == GetClientTeam(client))
                 {
                     KickClient(i);
                     break;
@@ -298,8 +281,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
-    int client = GetClientOfUserId(event.GetInt("userid"));
-    OnClientDisconnect(client);
+    CheckAliveHumans(GetClientOfUserId(event.GetInt("userid")));
 }
 
 public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadcast)
@@ -320,12 +302,26 @@ public void Event_RoundStart_Arena(Event event, const char[] name, bool dontBroa
         if (bIsAlive[i])
             iAliveHumans++;
     }
-    //CPrintToChatAll("[%s] Round started! Alive Humans: %d", PREFIX_DEBUG, iAliveHumans);
 }
 
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
     KickRCBots();
+}
+
+/* ========[Listeners]======== */
+public Action Command_JoinTeam(int client, const char[] command, int argc)
+{
+    if (argc > 0)
+    {
+        char arg[16];
+        GetCmdArg(1, arg, sizeof(arg));
+        if (StrEqual(arg, "spectate", false) && RCBot2_IsWaypointAvailable())
+        {
+            RCBot2_CreateBot("");
+        }
+    }
+    return Plugin_Continue;
 }
 
 /* ========[Commands]======== */
@@ -421,4 +417,27 @@ bool GetBotName(const char[] path, char[] buffer, int maxlen)
     }
 
     return GetTrieString(g_hConfigTrie, mdl, buffer, maxlen);
+}
+
+/* ========[Helpers]======== */
+void CheckAliveHumans(int client)
+{
+    if (IsPermaDeathMode())
+    {
+        if (IsFakeClient(client)) return;
+
+        if (bIsAlive[client])
+        {
+            iAliveHumans--;
+            if (iAliveHumans < 0)
+                iAliveHumans = 0;
+            else if (iAliveHumans < 1)
+            {
+                char teamUnassigned[8];
+                IntToString(view_as<int>(TFTeam_Unassigned), teamUnassigned, sizeof(teamUnassigned));
+                CheatCommand("mp_forcewin", teamUnassigned);
+            }
+        }
+        bIsAlive[client] = false;
+    }
 }
