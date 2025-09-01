@@ -116,12 +116,12 @@ public void OnConfigsExecuted()
         PrintToServer("[%s] Bots are unsupported on this map.", PLUGIN_NAME);
     }
 }
-
+/*
 public void OnMapEnd()
 {
     RCBot2_KickAllBots();
 }
-
+*/
 public void OnClientDisconnect(int client)
 {
     CheckAliveHumans(client);
