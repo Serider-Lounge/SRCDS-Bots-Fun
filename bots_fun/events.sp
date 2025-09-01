@@ -2,11 +2,14 @@
 // post_inventory_application, teamplay_flag_event
 public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBroadcast)
 {
+    if (!g_ConVarRenameBots.BoolValue)
+        return;
+
     int userid = event.GetInt("userid");
     int client = GetClientOfUserId(userid);
 
-    if (!IsPlayerAlive(client) ||
-        !IsFakeClient(client)) return;
+    if (!IsPlayerAlive(client) || !IsFakeClient(client))
+        return;
 
     CreateTimer(0.100001, Timer_SetNameFromModel, userid);
 }
@@ -37,7 +40,7 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
         return;
 
     if (IsClientInGame(client))
-        RCBot2_EnforceBotQuota(client);
+        RCBot2_UpdateBotQuota(client);
 
     if (IsPermaDeathMode())
     {
@@ -66,23 +69,19 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 // player_connect, player_connect_client, player_disconnect, player_info
 public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadcast)
 {
-    int client = -1;
+    /*
     if (StrEqual(name, "player_disconnect"))
     {
-        client = GetClientOfUserId(event.GetInt("userid"));
+        int client = GetClientOfUserId(event.GetInt("userid"));
         if (client > 0 && client <= MaxClients)
             g_bIsAlive[client] = false;
     }
+    */
     event.BroadcastDisabled = event.GetBool("bot");
     return Plugin_Changed;
 }
 
 /* ========[Rounds]======== */
-// arena_round_start, teamplay_suddendeath_begin
-/*
-public void Event_RoundStart_Arena(Event event, const char[] name, bool dontBroadcast)
-{}
-*/
 // teamplay_round_win
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {

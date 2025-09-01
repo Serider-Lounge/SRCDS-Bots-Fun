@@ -2,6 +2,7 @@
 
 /**
  * Get the amount of navigation areas.
+ * 
  * @return Store NavMesh.GetNavAreaCount()'s output
  */
 stock int NavMesh_GetNavAreaCount()
@@ -19,15 +20,17 @@ stock int NavMesh_GetNavAreaCount()
 
 /**
  * Check if navigation meshes are present.
- * @param  strip_workshop_prefix Whether to strip "workshop/" from the start of the map name
- * @return                       True if GetNavAreaCount() > 0 or <mapname>.nav is present
+ * 
+ * @return True if GetNavAreaCount() > 0 or <mapname>.nav is present
  */
-stock bool NavMesh_IsLoaded(bool strip_workshop_prefix=true)
+stock bool NavMesh_IsLoaded()
 {
     char mapName[PLATFORM_MAX_PATH];
     GetCurrentMap(mapName, sizeof(mapName));
+    /*
     if (strip_workshop_prefix && StrContains(mapName, "workshop/", false) == 0)
         strcopy(mapName, sizeof(mapName), mapName[9]);
+    */
 
     char navPath[PLATFORM_MAX_PATH];
     Format(navPath, sizeof(navPath), "maps/%s.nav", mapName);

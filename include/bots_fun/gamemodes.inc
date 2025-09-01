@@ -18,5 +18,6 @@ stock bool IsGameMode(const char[] gamemode)
  */
 stock bool IsPermaDeathMode()
 {
-    return IsGameMode("arena") || GameRules_GetProp("m_iRoundState") == 7;
+    return g_ConVarHumansOnly.BoolValue &&
+           (IsGameMode("arena") || GameRules_GetProp("m_iRoundState") == 7);
 }

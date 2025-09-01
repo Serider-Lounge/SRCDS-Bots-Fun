@@ -9,25 +9,38 @@
 public void OnPluginStart()
 {
     /* ConVars */
+    // tf_bot_quota
     g_ConVarTFBotQuota = FindConVar("tf_bot_quota");
-
+    // sm_bot_enabled
     g_ConVarPluginEnabled = CreateConVar("sm_bot_enabled", "1",
-                                       "Toggle the plugin.",
-                                        FCVAR_REPLICATED);
+                                         "Toggle the plugin.",
+                                         FCVAR_REPLICATED, true, 0.0, true, 1.0);
     HookConVarChange(g_ConVarPluginEnabled, ConVar_BotRatio);
+    // sm_bot_ratio
     g_ConVarBotRatio = CreateConVar("sm_bot_ratio", "0.25",
-                                  "Ratio of the bot quota to max players.",
-                                  FCVAR_REPLICATED,
-                                  true, 0.0, true, 1.0);
+                                    "Ratio of the bot quota to max players.",
+                                    FCVAR_REPLICATED,
+                                    true, 0.0, true, 1.0);
     HookConVarChange(g_ConVarBotRatio, ConVar_BotRatio);
+    // rcbot_bot_quota
     g_ConVarRCBotQuota = CreateConVar("rcbot_bot_quota", "0",
                                       "Determines the total number of rcbots in the game.",
                                       FCVAR_REPLICATED,
                                       true, 0.0, true, float(MAXPLAYERS));
     HookConVarChange(g_ConVarRCBotQuota, ConVar_RCBotQuota);
+    // rcbot_bot_quota_mode
     g_ConVarRCBotQuotaMode = CreateConVar("rcbot_bot_quota_mode", "normal",
                                           "Determines the type of quota. Allowed values: 'normal', 'fill'. If 'fill', the server will adjust bots to keep N players in the game, where N is bot_quota.",
                                           FCVAR_REPLICATED);
+    // sm_bot_humans_only
+    g_ConVarHumansOnly = CreateConVar("sm_bot_humans_only", "1",
+                                      "Whether to end the round prematurely if all human players are dead in Arena Mode or Sudden Death",
+                                      FCVAR_REPLICATED, true, 0.0, true, 1.0);
+    // sm_bot_rename_bots
+    g_ConVarRenameBots = CreateConVar("sm_bot_rename_bots", "1",
+                                      "If enabled, bots will be renamed.",
+                                      FCVAR_REPLICATED, true, 0.0, true, 1.0);
+    
 
     /* Configs */
     AutoExecConfig(true, "bots_fun");
@@ -133,5 +146,5 @@ public void OnClientDisconnect(int client)
     {
         CheckAliveHumans(client);
     }
-    RCBot2_EnforceBotQuota(client);
+    RCBot2_UpdateBotQuota(client);
 }

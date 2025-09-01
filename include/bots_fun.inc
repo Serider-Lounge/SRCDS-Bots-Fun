@@ -2,10 +2,10 @@
 #include <tf2_stocks>
 #include <multicolors>
 
-#define PLUGIN_NAME     "TFBots Fun"
-#define PLUGIN_VERSION  "25w36a"
+#define PLUGIN_NAME     "Bots Fun"
+#define PLUGIN_VERSION  "25w36b"
 #define PLUGIN_AUTHOR   "Heapons"
-#define PLUGIN_DESC     "Automatically manage TFBots (w/ RCBot2 support as well)."
+#define PLUGIN_DESC     "Automatically manage bots (+ RCBot2 support)."
 #define PLUGIN_URL      "https://github.com/Serider-Lounge/SRCDS-Bots-Fun"
 #define PLUGIN_CONFIG   "addons/sourcemod/configs/bots_fun.cfg"
 
@@ -14,6 +14,8 @@ ConVar g_ConVarPluginEnabled,
        g_ConVarRCBotQuota,
        g_ConVarRCBotQuotaMode,
        g_ConVarTFBotQuota,
+       g_ConVarHumansOnly,
+       g_ConVarRenameBots,
        rcbot_bot_quota_interval;
 
 int g_iBotQuota;

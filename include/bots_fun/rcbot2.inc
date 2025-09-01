@@ -1,5 +1,8 @@
+/**
+ * https://github.com/APGRoboCop/rcbot2
+ */
 #undef REQUIRE_EXTENSIONS
-#include <rcbot2> // https://github.com/APGRoboCop/rcbot2
+#include <rcbot2>
 #define REQUIRE_EXTENSIONS
 
 /**
@@ -20,7 +23,7 @@ stock void RCBot2_KickAllBots(bool rejoin=true)
 /**
  * In fill mode, enforce bot quota.
  */
-stock void RCBot2_EnforceBotQuota(int client)
+stock void RCBot2_UpdateBotQuota(int client)
 {
     GetConVarString(g_ConVarRCBotQuotaMode, g_strRCBotQuotaMode, sizeof(g_strRCBotQuotaMode));
     if (strcmp(g_strRCBotQuotaMode, "fill") == 0)

@@ -38,18 +38,20 @@ This is all configurable in [`addons/sourcemod/configs/bots_fun.cfg`](https://gi
 When all **humans** have died, the round ends pre-maturely so players won't have to sit and wait until bots are done.
 
 ## Commands
-| Name                        | Description                                                      |
-|-----------------------------|------------------------------------------------------------------|
-| `sm_nav_info`               | Displays information about bot support.                          |
-| `sm_nav_generate`           | Executes `nav_generate` without having to enable `sv_cheats`.    |
+| Name                          | Description                                                               |
+|-------------------------------|---------------------------------------------------------------------------|
+| `sm_nav_info`                 | Displays information about bot support.                                   |
+| `sm_nav_generate`             | Executes `nav_generate` without having to enable `sv_cheats`.             |
 | `sm_nav_generate_incremental` | Executes `nav_generate_incremental` without having to enable `sv_cheats`. |
 
 ## ConVars
 > ### `cfg/sourcemod/bots_fun.cfg`
 
-| Name                | Default   | Description                                         |
-|---------------------|-----------|-----------------------------------------------------|
-| `sm_bot_enabled`    | `1`       | Toggle the plugin.                                  |
-| `sm_bot_ratio`      | `0.25`    | Ratio of bots to max players (0.0 – 1.0).           |
-| `rcbot_bot_quota`   | `0`       | Determines the total number of rcbots in the game.  |
-| `rcbot_bot_quota_mode` | `normal` | Type of quota: `normal` or `fill`.                  |
+| Name                   | Default   | Description                                                       |
+|------------------------|-----------|-------------------------------------------------------------------|
+| `sm_bot_enabled`       | `1`       | Toggle the plugin.                                                |
+| `sm_bot_ratio`         | `0.25`    | Ratio of bots to max players (0.0 – 1.0).                         |
+| `rcbot_bot_quota`      | `0`       | Determines the total number of rcbots in the game.                |
+| `rcbot_bot_quota_mode` | `normal`  | Type of quota: `normal` or `fill`.                                |
+| `sm_bot_humans_only`   | `1`       | End the round early if all humans are dead in Arena/Sudden Death. |
+| `sm_bot_rename_bots`   | `1`       | If enabled, bots will be renamed based on their player model.     |
