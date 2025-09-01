@@ -34,6 +34,9 @@ Bot join/leave messages don't show up in chat to prevent spam.<br>
 The bots will pick a name depending on their player model (e.g. `models/player/scout.mdl` → `Scout`).<br>
 This is all configurable in [`addons/sourcemod/configs/bots_fun.cfg`](https://github.com/Serider-Lounge/SRCDS-Bots-Fun/blob/main/configs/bots_fun.cfg).<br>
 
+## Arena Mode / Sudden Death
+When all **humans** have died, the round ends pre-maturely so players won't have to sit and wait until bots are done.
+
 ## Commands
 | Name                        | Description                                                      |
 |-----------------------------|------------------------------------------------------------------|

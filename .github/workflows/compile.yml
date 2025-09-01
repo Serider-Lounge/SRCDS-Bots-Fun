@@ -3,13 +3,13 @@ name: Compile with SourceMod
 on:
   push:
     paths-ignore:
-      - '**/*.md'
+      - '**/README.md'
       - '**/LICENSE'
       - '**/.git*'
       - '**/*.smx'
   pull_request:
     paths-ignore:
-      - '**/*.md'
+      - '**/README.md'
       - '**/LICENSE'
       - '**/.git*'
       - '**/*.smx'
