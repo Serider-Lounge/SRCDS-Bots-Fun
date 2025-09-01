@@ -27,6 +27,10 @@ jobs:
       - name: Set environment variables
         run: echo SCRIPTS_PATH=$(pwd) >> $GITHUB_ENV
 
+      - name: Prepare include directory
+        run: |
+          cp -r include ../include
+
       - name: Setup SourcePawn Compiler ${{ matrix.SM_VERSION }}
         id: setup_sp
         uses: rumblefrog/setup-sp@master
@@ -39,7 +43,7 @@ jobs:
           for file in bots_fun.sp
           do
             echo -e "\nCompiling $file..."
-            spcomp -E -w234 -O2 -v2 -i include $file
+            spcomp -E -w234 -O2 -v2 -i ../include $file
           done
           echo "===OUT FILES==="
           ls
