@@ -2,6 +2,8 @@
 *.sh
 *.exe
 *.smx
+*.zip
+*.tar
 
 admin*.inc
 adt*.inc
