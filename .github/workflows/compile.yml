@@ -53,7 +53,7 @@ jobs:
       - name: Create scripting directory and move files
         run: |
           mkdir -p scripting/bots_fun
-          mkdir -p scripting/include
+          mkdir -p scripting/include/bots_fun
           mv bots_fun.sp scripting/
           mv bots_fun/* scripting/bots_fun/
           mv include/bots_fun.inc scripting/include/
