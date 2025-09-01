@@ -42,21 +42,25 @@ stock void RCBot2_EnforceBotQuota(int client)
 
         /* Enforce */
         int quota = g_ConVarRCBotQuota.IntValue;
-        while (total < quota)
+        int botsToAdd = quota - total;
+        if (botsToAdd > 0 && total < quota)
         {
-            RCBot2_CreateBot("");
-                total++;
+            for (int i = 0; i < botsToAdd; i++)
+            {
+                RCBot2_CreateBot("");
+            }
+            total += botsToAdd;
         }
 
-        while (total > quota)
+        int botsToRemove = total - quota;
+        if (botsToRemove > 0)
         {
-            for (int i = 1; i <= MaxClients; i++)
+            for (int i = 1; i <= MaxClients && botsToRemove > 0; i++)
             {
                 if (IsRCBot2Client(i) && GetClientTeam(i) == GetClientTeam(client))
                 {
                     KickClient(i);
-                    total--;
-                    break;
+                    botsToRemove--;
                 }
             }
         }

@@ -17,11 +17,12 @@ public Action Command_JoinTeam(int client, const char[] command, int argc)
 public Action Command_NavInfo(int client, int args)
 {
     CReplyToCommand(client,
-        "[{red}%s{default}]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default}\n- {olive}Area Count{default}: {lightcyan}%d",
+        "[{red}%s{default}]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default}",
         PLUGIN_NAME,
         RCBot2_IsWaypointAvailable() ? "RCBot2" : NavMesh_IsLoaded() ? "TFBot" : "Unsupported Map",
-        RCBot2_IsWaypointAvailable() ? g_ConVarRCBotQuota.IntValue : g_ConVarTFBotQuota.IntValue,
-        NavMesh_GetNavAreaCount());
+        RCBot2_IsWaypointAvailable() ? g_ConVarRCBotQuota.IntValue : g_ConVarTFBotQuota.IntValue);
+    if (!RCBot2_IsWaypointAvailable() && NavMesh_IsLoaded())
+        CReplyToCommand(client, "- {olive}Area Count{default}: {lightcyan}%d", NavMesh_GetNavAreaCount());
 
     return Plugin_Handled;
 }

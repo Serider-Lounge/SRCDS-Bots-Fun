@@ -26,7 +26,7 @@ public void OnPluginStart()
                                       true, 0.0, true, float(MAXPLAYERS));
     HookConVarChange(g_ConVarRCBotQuota, ConVar_RCBotQuota);
     g_ConVarRCBotQuotaMode = CreateConVar("rcbot_bot_quota_mode", "normal",
-                                          "Determines the type of quota. Allowed values: 'normal', 'fill', and 'match'. If 'fill', the server will adjust bots to keep N players in the game, where N is bot_quota. If 'match', the server will maintain a 1:N ratio of humans to bots, where N is bot_quota.",
+                                          "Determines the type of quota. Allowed values: 'normal', 'fill'. If 'fill', the server will adjust bots to keep N players in the game, where N is bot_quota.",
                                           FCVAR_REPLICATED);
 
     /* Configs */
@@ -44,8 +44,8 @@ public void OnPluginStart()
     HookEvent("player_disconnect", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_info", Event_PlayerStatus, EventHookMode_Pre);
     // Rounds
-    HookEvent("teamplay_suddendeath_begin", Event_RoundStart_Arena);
-    HookEvent("arena_round_start", Event_RoundStart_Arena);
+    //HookEvent("teamplay_suddendeath_begin", Event_RoundStart_Arena);
+    //HookEvent("arena_round_start", Event_RoundStart_Arena);
     HookEvent("teamplay_round_win", Event_RoundEnd);
 
     /* Commands */
@@ -69,7 +69,7 @@ public void OnConfigsExecuted()
     SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
 
     // Check if the plugin is enabled (or if it's MVM)
-    if (!g_ConVarPluginEnabled.BoolValue || IsGameMode("mann_vs_machine"))
+    if (!g_ConVarPluginEnabled.BoolValue)
     {
         SetConVarInt(g_ConVarRCBotQuota, 0);
         SetConVarInt(g_ConVarTFBotQuota, 0);
@@ -83,14 +83,18 @@ public void OnConfigsExecuted()
     // Check for bot support
     if (RCBot2_IsWaypointAvailable()) // RCBot2
     {
-        SetConVarInt(g_ConVarRCBotQuota, g_iBotQuota);
+        int TFMVMDefendersTeamSize = GetConVarInt(FindConVar("tf_mvm_defenders_team_size"));
+
+        SetConVarInt(g_ConVarRCBotQuota,
+                     IsGameMode("mann_vs_machine") ?
+                     (TFMVMDefendersTeamSize > 10 ? 10 : TFMVMDefendersTeamSize) : g_iBotQuota);
         SetConVarInt(g_ConVarTFBotQuota, 0);
 
         PrintToServer("[%s] RCBot2 waypoints detected, adding RCBot clients...", PLUGIN_NAME);
         PrintToServer("[%s] rcbot_bot_quota_interval: %d.", PLUGIN_NAME, rcbot_bot_quota_interval.IntValue);
         PrintToServer("[%s] ⚠ WARNING ⚠: Make sure to comment out 'rcbot_bot_quota_interval' in 'addons/rcbot2/config/config.ini'!.", PLUGIN_NAME);
     }
-    else if (NavMesh_IsLoaded()) // TFBot
+    else if (NavMesh_IsLoaded() && !IsGameMode("mann_vs_machine")) // TFBot
     {
         ConVar tf_bot_offense_must_push_time = FindConVar("tf_bot_offense_must_push_time");
         int oldPushTime = GetConVarInt(tf_bot_offense_must_push_time);
@@ -120,10 +124,14 @@ public void OnConfigsExecuted()
 public void OnMapEnd()
 {
     SetConVarInt(g_ConVarRCBotQuota, 0);
+    RCBot2_KickAllBots();
 }
 
 public void OnClientDisconnect(int client)
 {
-    CheckAliveHumans(client);
+    if (IsPermaDeathMode())
+    {
+        CheckAliveHumans(client);
+    }
     RCBot2_EnforceBotQuota(client);
 }

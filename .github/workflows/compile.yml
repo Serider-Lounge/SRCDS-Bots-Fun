@@ -34,17 +34,12 @@ jobs:
           version: '1.13.x'
           version-file: ./bots_fun.sp
 
-      - name: Attempt to fix <bots_fun/*> includes
-        run: |
-          mkdir -p include
-          cp bots_fun.inc include/bots_fun.inc
-
       - name: Compile plugins
         run: |
           for file in bots_fun.sp
           do
             echo -e "\nCompiling $file..."
-            spcomp -E -w234 -O2 -v2 -i include $file
+            spcomp -E -w234 -O2 -v2 -i include -i include/bots_fun $file
           done
           echo "===OUT FILES==="
           ls
@@ -60,6 +55,8 @@ jobs:
           mkdir -p scripting/bots_fun
           mv bots_fun.sp scripting/
           mv bots_fun/* scripting/bots_fun/
+          mv include/bots_fun.inc scripting/include/
+          mv include/bots_fun/* scripting/include/bots_fun/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

@@ -33,12 +33,15 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
 
-    if (IsClientInGame(client) && !IsFakeClient(client))
+    if (IsFakeClient(client))
+        return;
+
+    if (IsClientInGame(client))
         RCBot2_EnforceBotQuota(client);
 
     if (IsPermaDeathMode())
     {
-        if (IsClientInGame(client) && !IsFakeClient(client) && !IsClientObserver(client))
+        if (IsClientInGame(client) && !IsClientObserver(client))
             g_bIsAlive[client] = true;
         CheckAliveHumans(client);
     }
@@ -49,6 +52,9 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 {
     int userid = event.GetInt("userid");
     int client = GetClientOfUserId(userid);
+
+    if (IsFakeClient(client))
+        return;
 
     if (IsPermaDeathMode())
     {
@@ -73,13 +79,10 @@ public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadc
 
 /* ========[Rounds]======== */
 // arena_round_start, teamplay_suddendeath_begin
+/*
 public void Event_RoundStart_Arena(Event event, const char[] name, bool dontBroadcast)
-{
-    for (int i = 1; i <= MaxClients; i++)
-    {
-    }
-}
-
+{}
+*/
 // teamplay_round_win
 public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
