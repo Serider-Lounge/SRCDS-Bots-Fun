@@ -49,3 +49,5 @@ topmenus.inc
 usermessages.inc
 vector.inc
 version*.inc
+
+!include/bots_fun/*
