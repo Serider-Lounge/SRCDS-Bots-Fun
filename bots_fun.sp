@@ -38,7 +38,7 @@ public void OnPluginStart()
                                       FCVAR_REPLICATED, true, 0.0, true, 1.0);
     // sm_bot_rename_bots
     g_ConVarRenameBots = CreateConVar("sm_bot_rename_bots", "1",
-                                      "If enabled, bots will be renamed.",
+                                      "If enabled, bots will be renamed based on their player model.",
                                       FCVAR_REPLICATED, true, 0.0, true, 1.0);
     
 
