@@ -18,11 +18,11 @@ So what about the maps that _do_ support bots, then? Well, there were a few issu
 ## Auto-Joining
 This plugin automatically adds/removes bots for you depending on the map. Here's a table to explain this better:
 
-| File Type                                                        | Result                |
-|------------------------------------------------------------------|-----------------------|
-| `addons/rcbot2/waypoints/<modname>/<mapname>.rcw` (Waypoint)     | Spawn RCbots.         |
-| `maps/<mapname>.nav` (Nav. Mesh)                                 | Spawn TFBots.         |
-| *No bot paths available...*                                      | All bots are removed. |
+| Type                        | Result                |
+|-----------------------------|-----------------------|
+| Waypoint                    | Spawn RCbots.         |
+| Valve Nav. Mesh             | Spawn TFBots.         |
+| *No bot paths available...* | All bots are removed. |
 
 The priority order is: **RCBot** > **TFBot** > ***None***.<br>
 Bot join/leave messages don't show up in chat to prevent spam.<br>
