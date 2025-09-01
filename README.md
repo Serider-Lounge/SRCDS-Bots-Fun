@@ -1,8 +1,8 @@
 # [TF2/ANY?] Bots Fun ([RCBot2](https://github.com/APGRoboCop/rcbot2) Support‼)
 # Why?
-
-I host a TF2 server with a **LOT** of maps and gamemodes, but here's the deal: they don't _all_ support bots.<br>
-So what about the maps that _did_ support bots, then? Well, there were a few issues:<br>
+### [@Heapons](https://github.com/Heapons)
+We host a TF2 server with a **LOT** of maps and gamemodes, but here's the deal: they don't _all_ support bots.<br>
+So what about the maps that _do_ support bots, then? Well, there were a few issues:<br>
 
 - I had to manually set `tf_bot_quota` and `tf_bot_quota_mode fill` whenever needed.
   - And remove bots on maps that do not support bots, so they don't needlessly take up player slots (because they'd just be standing still).
