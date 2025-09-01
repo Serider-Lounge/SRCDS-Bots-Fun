@@ -27,10 +27,6 @@ jobs:
       - name: Set environment variables
         run: echo SCRIPTS_PATH=$(pwd) >> $GITHUB_ENV
 
-      - name: Prepare include directory
-        run: |
-          cp -r include ../include
-
       - name: Setup SourcePawn Compiler ${{ matrix.SM_VERSION }}
         id: setup_sp
         uses: rumblefrog/setup-sp@master
@@ -43,7 +39,7 @@ jobs:
           for file in bots_fun.sp
           do
             echo -e "\nCompiling $file..."
-            spcomp -E -w234 -O2 -v2 -i ../include $file
+            spcomp -E -w234 -O2 -v2 -i include $file
           done
           echo "===OUT FILES==="
           ls
@@ -54,11 +50,12 @@ jobs:
           mkdir -p plugins
           mv bots_fun.smx plugins/
 
-      - name: Create scripting directory and move source code
+      - name: Create scripting directory and move source
         run: |
-          mkdir -p scripting/bots_fun
+          mkdir -p scripting/include/bots_fun
           mv bots_fun.sp scripting/
-          mv bots_fun/* scripting/bots_fun/
+          mv include/bots_fun.inc scripting/include/
+          mv include/bots_fun/* scripting/include/bots_fun/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -67,4 +64,5 @@ jobs:
           path: |
             plugins/bots_fun.smx
             scripting/bots_fun.sp
-            scripting/bots_fun/**
+            scripting/include/bots_fun.inc
+            scripting/include/bots_fun/**
