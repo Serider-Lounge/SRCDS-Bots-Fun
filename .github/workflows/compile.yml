@@ -34,6 +34,11 @@ jobs:
           version: '1.13.x'
           version-file: ./bots_fun.sp
 
+      - name: Attempt to fix <bots_fun/*> includes
+        run: |
+          mkdir -p include
+          cp bots_fun.inc include/bots_fun.inc
+
       - name: Compile plugins
         run: |
           for file in bots_fun.sp
@@ -43,7 +48,6 @@ jobs:
           done
           echo "===OUT FILES==="
           ls
-          echo version = ${{ steps.setup_sp.outputs.plugin-version }}
         working-directory: ${{ env.SCRIPTS_PATH }}
 
       - name: Move smx to plugins directory
@@ -51,12 +55,11 @@ jobs:
           mkdir -p plugins
           mv bots_fun.smx plugins/
 
-      - name: Create scripting directory and move source
+      - name: Create scripting directory and move source code
         run: |
-          mkdir -p scripting/include/bots_fun
+          mkdir -p scripting/bots_fun
           mv bots_fun.sp scripting/
-          mv include/bots_fun.inc scripting/include/
-          mv include/bots_fun/* scripting/include/bots_fun/
+          mv bots_fun/* scripting/bots_fun/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -65,5 +68,6 @@ jobs:
           path: |
             plugins/bots_fun.smx
             scripting/bots_fun.sp
+            scripting/bots_fun/**
             scripting/include/bots_fun.inc
             scripting/include/bots_fun/**
