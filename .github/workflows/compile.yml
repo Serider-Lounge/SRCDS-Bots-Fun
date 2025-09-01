@@ -64,4 +64,5 @@ jobs:
             plugins/bots_fun.smx
             scripting/bots_fun.sp
             scripting/bots_fun/**
+            include/bots_fun.inc
             include/bots_fun/**
