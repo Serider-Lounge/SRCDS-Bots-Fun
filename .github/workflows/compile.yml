@@ -64,6 +64,7 @@ jobs:
         with:
           name: "Bots Fun"
           path: |
+            configs/**
             plugins/bots_fun.smx
             scripting/bots_fun.sp
             scripting/bots_fun/**
