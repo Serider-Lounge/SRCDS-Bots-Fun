@@ -50,11 +50,13 @@ jobs:
           mkdir -p plugins
           mv bots_fun.smx plugins/
 
-      - name: Create scripting directory and move source code
+      - name: Create scripting directory and move files
         run: |
           mkdir -p scripting/bots_fun
           mv bots_fun.sp scripting/
           mv bots_fun/* scripting/bots_fun/
+          mv include/bots_fun.inc scripting/include/
+          mv include/bots_fun/* scripting/include/bots_fun/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -64,5 +66,5 @@ jobs:
             plugins/bots_fun.smx
             scripting/bots_fun.sp
             scripting/bots_fun/**
-            include/bots_fun.inc
-            include/bots_fun/**
+            scripting/include/bots_fun.inc
+            scripting/include/bots_fun/**
