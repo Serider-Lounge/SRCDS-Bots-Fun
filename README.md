@@ -35,7 +35,7 @@ The bots will pick a name depending on their player model (e.g. `models/player/s
 This is all configurable in [`addons/sourcemod/configs/bots_fun.cfg`](https://github.com/Serider-Lounge/SRCDS-Bots-Fun/blob/main/configs/bots_fun.cfg).<br>
 
 ## Commands
-| Command                     | Description                                                      |
+| Name                        | Description                                                      |
 |-----------------------------|------------------------------------------------------------------|
 | `sm_nav_info`               | Displays information about bot support.                          |
 | `sm_nav_generate`           | Executes `nav_generate` without having to enable `sv_cheats`.    |
