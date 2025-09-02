@@ -57,8 +57,6 @@ public void OnPluginStart()
     HookEvent("player_disconnect", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_info", Event_PlayerStatus, EventHookMode_Pre);
     // Rounds
-    //HookEvent("teamplay_suddendeath_begin", Event_RoundStart_Arena);
-    //HookEvent("arena_round_start", Event_RoundStart_Arena);
     HookEvent("teamplay_round_win", Event_RoundEnd);
 
     /* Commands */
@@ -71,8 +69,6 @@ public void OnPluginStart()
     // @admins
     RegAdminCmd("sm_nav_generate", Command_NavGenerate, ADMFLAG_CHEATS, "Generate navigation meshes.");
     RegAdminCmd("sm_nav_generate_incremental", Command_NavGenerateIncremental, ADMFLAG_CHEATS, "Generate navigation meshes incrementally.");
-    //RegAdminCmd("sm_nav_copy", Command_NavCopy, ADMFLAG_CHEATS, "Steal a '.nav' file from another map.");
-    //RegAdminCmd("sm_waypoint_copy", Command_WaypointCopy, ADMFLAG_CHEATS, "Steal a '.rcw' waypoint file from another map.");
 }
 
 public void OnConfigsExecuted()
@@ -81,7 +77,7 @@ public void OnConfigsExecuted()
 
     SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
 
-    // Check if the plugin is enabled (or if it's MVM)
+    // Check if the plugin is enabled
     if (!g_ConVarPluginEnabled.BoolValue)
     {
         SetConVarInt(g_ConVarRCBotQuota, 0);
@@ -136,8 +132,7 @@ public void OnConfigsExecuted()
 
 public void OnMapEnd()
 {
-    SetConVarInt(g_ConVarRCBotQuota, 0);
-    RCBot2_KickAllBots();
+    RCBot2_KickAllBots(false);
 }
 
 public void OnClientDisconnect(int client)

@@ -3,7 +3,7 @@
 #include <multicolors>
 
 #define PLUGIN_NAME     "Bots Fun"
-#define PLUGIN_VERSION  "25w36c"
+#define PLUGIN_VERSION  "25w36d"
 #define PLUGIN_AUTHOR   "Heapons"
 #define PLUGIN_DESC     "Automatically manage bots (+ RCBot2 support)."
 #define PLUGIN_URL      "https://github.com/Serider-Lounge/SRCDS-Bots-Fun"
