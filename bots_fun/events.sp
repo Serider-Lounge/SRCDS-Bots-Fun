@@ -11,7 +11,7 @@ public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBro
     if (!IsPlayerAlive(client) || !IsFakeClient(client))
         return;
 
-    CreateTimer(0.1, Timer_SetNameFromModel, client);
+    CreateTimer(0.100001, Timer_SetNameFromModel, client);
 }
 
 public Action Timer_SetNameFromModel(Handle timer, int client)

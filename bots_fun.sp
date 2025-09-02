@@ -15,6 +15,8 @@
 public void OnPluginStart()
 {
     /* ConVars */
+    // mp_teams_unbalanced_limit
+    g_ConVarTeamsUnbalanceLimit = FindConVar("mp_teams_unbalanced_limit");
     // tf_bot_quota
     g_ConVarTFBotQuota = FindConVar("tf_bot_quota");
     // sm_bot_enabled
@@ -106,8 +108,7 @@ public void OnConfigsExecuted()
         SetConVarInt(g_ConVarTFBotQuota, 0);
 
         PrintToServer("[%s] RCBot2 waypoints detected, adding RCBot clients...", PLUGIN_NAME);
-        PrintToServer("[%s] rcbot_bot_quota_interval: %d.", PLUGIN_NAME, rcbot_bot_quota_interval.IntValue);
-        PrintToServer("[%s] ⚠ WARNING ⚠: Make sure to comment out 'rcbot_bot_quota_interval' in 'addons/rcbot2/config/config.ini'!.", PLUGIN_NAME);
+        PrintToServer("[%s] rcbot_bot_quota: %d.", PLUGIN_NAME, g_ConVarRCBotQuota.IntValue);
     }
     else if (NavMesh_IsLoaded() && !IsGameMode("mann_vs_machine")) // TFBot
     {
@@ -123,7 +124,7 @@ public void OnConfigsExecuted()
         RCBot2_KickAllBots();
 
         PrintToServer("[%s] Valve Navigation Meshes detected, adding TFBot clients...", PLUGIN_NAME, g_iBotQuota);
-        PrintToServer("[%s] g_ConVarTFBotQuota: %d.", PLUGIN_NAME, g_iBotQuota);
+        PrintToServer("[%s] tf_bot_quota: %d.", PLUGIN_NAME, g_iBotQuota);
     }
     else // N/A
     {
@@ -136,16 +137,22 @@ public void OnConfigsExecuted()
     }
 }
 
+public void OnMapStart()
+{
+    g_bIsMapEnding = false;
+}
+
 public void OnMapEnd()
 {
+    g_bIsMapEnding = true;
     RCBot2_KickAllBots(false);
 }
 
 public void OnClientDisconnect(int client)
 {
     if (IsPermaDeathMode())
-    {
         CheckAliveHumans(client);
-    }
-    RCBot2_UpdateBotQuota(client);
+    
+    if (!g_bIsMapEnding)
+        RCBot2_UpdateBotQuota(client);
 }
