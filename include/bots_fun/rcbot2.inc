@@ -37,11 +37,8 @@ stock void RCBot2_UpdateBotQuota(int client)
                 rcbot++;
         }
 
-        // Humans
-        int humanCount = GetHumanClientCount(_, true);
-
         // Total Players
-        int total = rcbot + humanCount;
+        int total = rcbot + GetHumanClientCount(_, true);
 
         /* Enforce */
         int quota = g_ConVarRCBotQuota.IntValue;

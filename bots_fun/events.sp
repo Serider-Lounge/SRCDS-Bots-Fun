@@ -11,23 +11,18 @@ public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBro
     if (!IsPlayerAlive(client) || !IsFakeClient(client))
         return;
 
-    CreateTimer(0.100001, Timer_SetNameFromModel, userid);
+    CreateTimer(0.1, Timer_SetNameFromModel, client);
 }
 
-public Action Timer_SetNameFromModel(Handle timer, any userid)
+public Action Timer_SetNameFromModel(Handle timer, int client)
 {
-    int client = GetClientOfUserId(userid);
-
     char path[PLATFORM_MAX_PATH],
          botName[PLATFORM_MAX_PATH];
 
     GetClientModel(client, path, sizeof(path));
 
     if (GetBotName(path, botName, sizeof(botName)))
-    {
         SetClientName(client, botName);
-        return Plugin_Stop;
-    }
 
     return Plugin_Stop;
 }
