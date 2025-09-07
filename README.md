@@ -3,8 +3,7 @@
 # Why?
 ### [@Heapons](https://github.com/Heapons)
 We host a TF2 server with a **LOT** of maps and gamemodes, but here's the deal: they don't _all_ support bots.<br>
-So what about the maps that _do_ support bots, then? Well, there were a few issues:<br>
-
+So what about the maps that _do_ support bots, then? Well, there were few issues such as:</br>
 - I had to manually set `tf_bot_quota` and `tf_bot_quota_mode fill` whenever needed.
   - And remove bots on maps that do not support bots, so they don't needlessly take up player slots (because they'd just be standing still).
 - I don't always know whether a map supports bots or not.
@@ -55,4 +54,4 @@ When all **humans** have died, the round ends pre-maturely so players won't have
 | `rcbot_bot_quota`      | `0`       | Determines the total number of rcbots in the game.                                                |
 | `rcbot_bot_quota_mode` | `normal`  | Type of quota: `normal` or `fill`.                                                                |
 | `sm_bot_humans_only`   | `1`       | Whether to end the round prematurely if all human players are dead in Arena Mode or Sudden Death. |
-| `sm_bot_rename_bots`   | `1`       | If enabled, bots will be renamed based on their player model.                                     |
+| `sm_bot_rename_bots`   | `1`       | If enabled, bots will be renamed based on their player model.                                     |=
