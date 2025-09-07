@@ -6,7 +6,7 @@
 #include "bots_fun/events.sp"
 
 // The rest is defined in <bots_fun>
-#define PLUGIN_VERSION  "25w36e"
+#define PLUGIN_VERSION  "25w36f"
 #define PLUGIN_AUTHOR   "Heapons"
 #define PLUGIN_DESC     "Automatically manage bots (+ RCBot2 support)."
 #define PLUGIN_URL      "https://github.com/Serider-Lounge/SRCDS-Bots-Fun"
@@ -15,8 +15,6 @@
 public void OnPluginStart()
 {
     /* ConVars */
-    // mp_teams_unbalanced_limit
-    g_ConVarTeamsUnbalanceLimit = FindConVar("mp_teams_unbalanced_limit");
     // tf_bot_quota
     g_ConVarTFBotQuota = FindConVar("tf_bot_quota");
     // sm_bot_enabled
@@ -65,7 +63,8 @@ public void OnPluginStart()
     HookEvent("player_disconnect", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_info", Event_PlayerStatus, EventHookMode_Pre);
     // Rounds
-    HookEvent("teamplay_round_win", Event_RoundEnd);
+    HookEvent("teamplay_round_start", Event_RoundStart);
+    //HookEvent("teamplay_round_win", Event_RoundEnd);
 
     /* Commands */
     // Listeners
@@ -81,6 +80,8 @@ public void OnPluginStart()
 
 public void OnConfigsExecuted()
 {
+    g_bWasBotStatusShown = false;
+
     g_iBotQuota = RoundFloat(g_ConVarBotRatio.FloatValue * GetMaxHumanPlayers());
 
     SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
@@ -93,7 +94,7 @@ public void OnConfigsExecuted()
 
         RCBot2_KickAllBots();
 
-        PrintToServer("[%s] Plugin has been disabled, kicking bots...", PLUGIN_NAME);
+        PrintToServer("[%s] Map is unsupported, bots won't be playing.", PLUGIN_NAME);
         return;
     }
 
@@ -137,22 +138,11 @@ public void OnConfigsExecuted()
     }
 }
 
-public void OnMapStart()
-{
-    g_bIsMapEnding = false;
-}
-
-public void OnMapEnd()
-{
-    g_bIsMapEnding = true;
-    RCBot2_KickAllBots(false);
-}
-
 public void OnClientDisconnect(int client)
 {
     if (IsPermaDeathMode())
         CheckAliveHumans(client);
     
-    if (!g_bIsMapEnding)
+    if (!IsFakeClient(client) && RCBot2_IsWaypointAvailable())
         RCBot2_UpdateBotQuota(client);
 }

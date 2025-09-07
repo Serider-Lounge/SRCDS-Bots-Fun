@@ -11,13 +11,12 @@ ConVar g_ConVarPluginEnabled,
        g_ConVarRCBotQuotaMode,
        g_ConVarTFBotQuota,
        g_ConVarHumansOnly,
-       g_ConVarRenameBots,
-       g_ConVarTeamsUnbalanceLimit;
+       g_ConVarRenameBots;
 
 int g_iBotQuota;
 
 bool g_bIsAlive[MAXPLAYERS + 1],
-     g_bIsMapEnding;
+     g_bWasBotStatusShown;
 
 char g_strRCBotQuotaMode[16];
 

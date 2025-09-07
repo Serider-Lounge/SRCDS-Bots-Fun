@@ -5,7 +5,7 @@ public Action Command_JoinTeam(int client, const char[] command, int argc)
         char argument[16];
         GetCmdArg(1, argument, sizeof(argument));
 
-        if (StrContains(argument, "spec") == 0)
+        if (StrContains(argument, "spec") == 0 && RCBot2_IsWaypointAvailable())
         {
             OnClientDisconnect(client);
             RCBot2_CreateBot("");
