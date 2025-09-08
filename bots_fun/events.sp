@@ -33,8 +33,11 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
     if (IsFakeClient(client))
         return;
 
-    if (IsClientInGame(client))
+    // Only update quota for real, in-game, non-observer humans
+    if (IsClientInGame(client) && !IsClientObserver(client) && GetClientTeam(client) >= 2)
+    {
         RCBot2_UpdateBotQuota(client);
+    }
 
     if (IsPermaDeathMode())
     {
@@ -65,6 +68,14 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadcast)
 {
     event.BroadcastDisabled = event.GetBool("bot");
+
+    // Call quota update here for human connect/disconnect
+    int client = GetClientOfUserId(event.GetInt("userid"));
+    if (!IsFakeClient(client) && IsClientInGame(client))
+    {
+        RCBot2_UpdateBotQuota(client);
+    }
+
     return Plugin_Changed;
 }
 

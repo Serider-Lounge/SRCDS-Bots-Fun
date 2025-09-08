@@ -4,7 +4,7 @@
  * @param inGameOnly    If false connecting players are also counted.
  * @return              Human client count in the server.
  */
-stock int GetHumanClientCount(bool isAliveOnly=true)
+stock int GetHumanClientCount(bool isAliveOnly=false)
 {
     int count = 0;
 
