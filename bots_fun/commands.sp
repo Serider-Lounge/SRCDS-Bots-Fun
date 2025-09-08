@@ -1,26 +1,10 @@
-public Action Command_JoinTeam(int client, const char[] command, int argc)
-{
-    if (argc > 0)
-    {
-        char argument[16];
-        GetCmdArg(1, argument, sizeof(argument));
-
-        if (StrContains(argument, "spec") == 0 && RCBot2_IsWaypointAvailable())
-        {
-            OnClientDisconnect(client);
-            RCBot2_CreateBot("");
-        }
-    }
-    return Plugin_Continue;
-}
-
 public Action Command_NavInfo(int client, int args)
 {
     CReplyToCommand(client,
         "[{red}%s{default}]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default}",
         PLUGIN_NAME,
         RCBot2_IsWaypointAvailable() ? "RCBot2" : NavMesh_IsLoaded() ? "TFBot" : "Unsupported Map",
-        RCBot2_IsWaypointAvailable() ? g_ConVarRCBotQuota.IntValue : g_ConVarTFBotQuota.IntValue);
+        RCBot2_IsWaypointAvailable() ? g_ConVars[rcbot_bot_quota].IntValue : g_ConVars[tf_bot_quota].IntValue);
     if (!RCBot2_IsWaypointAvailable() && NavMesh_IsLoaded())
         CReplyToCommand(client, "- {olive}Area Count{default}: {lightcyan}%d", NavMesh_GetNavAreaCount());
 

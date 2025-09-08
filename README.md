@@ -28,7 +28,7 @@ The priority order is: **RCBot** > **TFBot** > ***None***.<br>
 Bot join/leave messages don't show up in chat to prevent spam.<br>
 
 > [!NOTE]
-> In [Mann Vs. Machine](https://wiki.teamfortress.com/wiki/Mann_vs._Machine), the **RCBot** quota will use `tf_mvm_defenders_team_size`'s value and won't go past `10`. I'll make this configurable in the future— but now, I'm too lazy to implement it xd.
+> In [Mann Vs. Machine](https://wiki.teamfortress.com/wiki/Mann_vs._Machine), the **RCBot** quota will use `tf_mvm_defenders_team_size`'s value instead of `sm_bot_ratio` or `rcbot_bot_quota`.
 
 ## Auto-Renaming
 The bots will pick a name depending on their player model (e.g. `models/player/scout.mdl` → `Scout`).<br>

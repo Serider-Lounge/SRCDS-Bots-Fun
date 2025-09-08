@@ -25,10 +25,10 @@ stock void RCBot2_KickAllBots(bool rejoin=true)
  */
 stock void RCBot2_UpdateBotQuota(int client)
 {
-    GetConVarString(g_ConVarRCBotQuotaMode, g_strRCBotQuotaMode, sizeof(g_strRCBotQuotaMode));
+    GetConVarString(g_ConVars[rcbot_bot_quota_mode], g_strRCBotQuotaMode, sizeof(g_strRCBotQuotaMode));
     if (strcmp(g_strRCBotQuotaMode, "fill") == 0)
     {
-        int quota = g_ConVarRCBotQuota.IntValue;
+        int quota = g_ConVars[rcbot_bot_quota].IntValue;
         int humanCount = GetHumanClientCount(false); // Count all in-game humans
         int rcbotCount = 0;
 
@@ -46,14 +46,13 @@ stock void RCBot2_UpdateBotQuota(int client)
                 break;
         }
 
-        int clientTeam = GetClientTeam(client);
         int tries = 0; // Prevent infinite loop
         while ((humanCount + rcbotCount) > quota && tries < MaxClients)
         {
             bool kicked = false;
             for (int i = 1; i <= MaxClients; i++)
             {
-                if (IsRCBot2Client(i) && GetClientTeam(i) == clientTeam)
+                if (IsRCBot2Client(i) && GetClientTeam(i) == GetClientTeam(client))
                 {
                     KickClient(i);
                     rcbotCount--;

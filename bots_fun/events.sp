@@ -2,7 +2,7 @@
 // post_inventory_application, teamplay_flag_event
 public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBroadcast)
 {
-    if (!g_ConVarRenameBots.BoolValue)
+    if (!g_ConVars[rename_bots].BoolValue)
         return;
 
     int client = GetClientOfUserId(event.GetInt("userid"));
