@@ -6,7 +6,7 @@
 #include "bots_fun/events.sp"
 
 // The rest is defined in <bots_fun>
-#define PLUGIN_VERSION  "25w36f"
+#define PLUGIN_VERSION  "25w37a"
 #define PLUGIN_AUTHOR   "Heapons"
 #define PLUGIN_DESC     "Automatically manage bots (+ RCBot2 support)."
 #define PLUGIN_URL      "https://github.com/Serider-Lounge/SRCDS-Bots-Fun"

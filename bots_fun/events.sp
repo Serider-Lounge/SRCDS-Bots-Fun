@@ -51,7 +51,7 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
     int client = GetClientOfUserId(userid);
     bool isFeignDeath = (event.GetInt("death_flags") == 32);
 
-    if (IsFakeClient(client) || isFeignDeath)
+    if (isFeignDeath)
         return;
 
     if (IsPermaDeathMode())

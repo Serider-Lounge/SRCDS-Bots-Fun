@@ -4,16 +4,18 @@
  * @param inGameOnly    If false connecting players are also counted.
  * @return              Human client count in the server.
  */
-stock int GetHumanClientCount(bool inGameOnly=true, bool isAliveOnly=false)
+stock int GetHumanClientCount(bool isAliveOnly=true)
 {
     int count = 0;
 
     for (int i = 1; i <= MaxClients; i++)
     {
-        if (!IsClientConnected(i) ||
-            IsFakeClient(i) ||
-            (inGameOnly && !IsClientInGame(i)) ||
-            (isAliveOnly && (!IsPlayerAlive(i) || IsClientObserver(i)))) continue;
+        if (!IsClientConnected(i)) continue;
+        if (!IsClientInGame(i)) continue;
+        if (IsFakeClient(i)) continue;
+        if (IsClientObserver(i)) continue;
+        if (GetClientTeam(i) < 2) continue; // Only RED/BLU teams (exclude unassigned/spectator/SourceTV/replay)
+        if (isAliveOnly && !g_bIsAlive[i]) continue;
 
         count++;
     }
@@ -27,21 +29,14 @@ stock int GetHumanClientCount(bool inGameOnly=true, bool isAliveOnly=false)
  */
 stock void CheckAliveHumans(int client)
 {
-    if (IsFakeClient(client) || IsClientObserver(client))
+    if (IsFakeClient(client) || IsClientObserver(client) || !IsPlayerAlive(client))
         return;
 
-    int aliveHumans = 0;
-    for (int i = 1; i <= MaxClients; i++)
-    {
-        if (g_bIsAlive[i])
-            aliveHumans++;
-    }
-
-    if (aliveHumans < 1)
+    if (GetHumanClientCount() < 1)
     {
         char teamUnassigned[8];
         IntToString(view_as<int>(TFTeam_Unassigned), teamUnassigned, sizeof(teamUnassigned));
         CheatCommand("mp_forcewin", teamUnassigned);
     }
-    //CPrintToChat(client, "[{red}%s{default}] {olive}Remaining Humans{default}: {lightgreen}%d", PLUGIN_NAME, aliveHumans);  
+    //CPrintToChat(client, "[{red}%s{default}] {olive}Remaining Humans{default}: {lightgreen}%d", PLUGIN_NAME, GetHumanClientCount();
 }
