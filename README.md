@@ -1,5 +1,5 @@
 # [TF2/ANY?] Bots Fun (w/ [RCBot2](https://github.com/APGRoboCop/rcbot2) Support‼)
-> ### Combine this with [<img src="https://avatars.githubusercontent.com/u/10157643" alt="@caxanga334" width="16" height="16" style="vertical-align:middle; border-radius:3px;"/> caxanga334](https://github.com/caxanga334)'s [Bot Auto-Balance](https://github.com/caxanga334/sm-plugins/actions) plugin‼
+### Combine this with [<img src="https://avatars.githubusercontent.com/u/10157643" alt="@caxanga334" width="16" height="16" style="vertical-align:middle; border-radius:3px;"/> caxanga334](https://github.com/caxanga334)'s [Bot Auto-Balance](https://github.com/caxanga334/sm-plugins/actions) plugin‼
 # Why?
 ### [@Heapons](https://github.com/Heapons)
 We host a TF2 server with a **LOT** of maps and gamemodes, but here's the deal: they don't _all_ support bots.<br>
