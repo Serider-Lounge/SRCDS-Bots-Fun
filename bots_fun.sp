@@ -39,9 +39,11 @@ public void OnPluginStart()
                                                    "Determines the type of quota. Allowed values: 'normal', 'fill'. If 'fill', the server will adjust bots to keep N players in the game, where N is bot_quota.",
                                                    FCVAR_REPLICATED);
     // sm_bot_humans_only
+    /*
     g_ConVars[humans_only] = CreateConVar("sm_bot_humans_only", "1",
                                           "Whether to end the round prematurely if all human players are dead in Arena Mode or Sudden Death",
                                           FCVAR_REPLICATED, true, 0.0, true, 1.0);
+    */
     // sm_bot_rename_bots
     g_ConVars[rename_bots] = CreateConVar("sm_bot_rename_bots", "1",
                                           "If enabled, bots will be renamed based on their player model.",
