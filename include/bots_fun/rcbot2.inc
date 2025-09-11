@@ -29,39 +29,41 @@ stock void RCBot2_UpdateBotQuota(int client)
     if (strcmp(g_strRCBotQuotaMode, "fill") == 0)
     {
         int quota = g_ConVars[rcbot_bot_quota].IntValue;
-        int humanCount = GetHumanClientCount(false); // Count all in-game humans
+        int humanCount = 0;
         int rcbotCount = 0;
 
         for (int i = 1; i <= MaxClients; i++)
         {
+            if (IsClientInGame(i) && !IsFakeClient(i) && !IsClientObserver(i))
+                humanCount++;
+
             if (IsRCBot2Client(i))
                 rcbotCount++;
         }
-
+        
         while ((humanCount + rcbotCount) < quota)
         {
-            RCBot2_CreateBot("");
+            //RCBot2_CreateBot("");
+            ServerCommand("rcbotd addbot"); // Add RCBots this way instead due to a bug where 'rcbot_change_classes' isn't respected.
             rcbotCount++;
             if ((humanCount + rcbotCount) == quota)
-                break;
+            break;
         }
 
-        int tries = 0; // Prevent infinite loop
-        while ((humanCount + rcbotCount) > quota && tries < MaxClients)
+        while ((humanCount + rcbotCount) > quota)
         {
             bool kicked = false;
             for (int i = 1; i <= MaxClients; i++)
             {
-                if (IsRCBot2Client(i) && GetClientTeam(i) == GetClientTeam(client))
-                {
-                    KickClient(i);
-                    rcbotCount--;
-                    kicked = true;
-                    break;
-                }
+            if (IsRCBot2Client(i) && GetClientTeam(i) == GetClientTeam(client))
+            {
+                KickClient(i);
+                rcbotCount--;
+                kicked = true;
+                break;
             }
-            tries++;
-            if (!kicked) break; // No more bots to kick from this team
+            }
+            if (!kicked) break;
         }
 
         /* Prints */

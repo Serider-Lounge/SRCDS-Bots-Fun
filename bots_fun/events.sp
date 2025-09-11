@@ -30,19 +30,16 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
 
-    if (IsFakeClient(client))
-        return;
-
-    // Only update quota for real, in-game, non-observer humans
-    if (IsClientInGame(client) && !IsClientObserver(client) && GetClientTeam(client) >= 2)
+    if (IsFakeClient(client) || IsClientObserver(client))
     {
-        RCBot2_UpdateBotQuota(client);
+        return;
     }
+
+    RCBot2_UpdateBotQuota(client);
 
     if (IsPermaDeathMode())
     {
-        if (IsClientInGame(client) && !IsClientObserver(client))
-            g_bIsAlive[client] = true;
+        g_bIsAlive[client] = true;
         CheckAliveHumans(client);
     }
 }

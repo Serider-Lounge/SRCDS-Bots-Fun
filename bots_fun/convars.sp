@@ -31,7 +31,8 @@ public void ConVar_RCBotQuota(ConVar convar, const char[] oldValue, const char[]
     {
         for (int i = rcbotCount; i < value; i++)
         {
-            RCBot2_CreateBot("");
+            //RCBot2_CreateBot("");
+            ServerCommand("rcbotd addbot"); // Add RCBots this way instead due to a bug where 'rcbot_change_classes' isn't respected.
         }
     }
 }
