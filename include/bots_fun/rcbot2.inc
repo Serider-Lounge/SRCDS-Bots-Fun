@@ -44,7 +44,7 @@ stock void RCBot2_UpdateBotQuota(int client)
         while ((humanCount + rcbotCount) < quota)
         {
             //RCBot2_CreateBot("");
-            ServerCommand("rcbotd addbot"); // Add RCBots this way instead due to a bug where 'rcbot_change_classes' isn't respected.
+            ServerCommand("rcbot%s addbot", IsDedicatedServer() ? "d" : ""); // Add RCBots this way instead due to a bug where 'rcbot_change_classes' isn't respected.
             rcbotCount++;
             if ((humanCount + rcbotCount) == quota)
             break;
