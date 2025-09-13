@@ -36,31 +36,16 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
     }
 
     RCBot2_UpdateBotQuota(client);
-
-    if (IsPermaDeathMode())
-    {
-        g_bIsAlive[client] = true;
-        CheckAliveHumans(client);
-    }
 }
 
 // player_death
+/*
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
-    int userid = event.GetInt("userid");
-    int client = GetClientOfUserId(userid);
-    bool isFeignDeath = (event.GetInt("death_flags") == 32);
-
-    if (isFeignDeath)
+    if (IsFakeClient(GetClientOfUserId(event.GetInt("userid"))) || event.GetInt("death_flags") == 32) // Feign Death (i.e. Dead Ringer)
         return;
-
-    if (IsPermaDeathMode())
-    {
-        if (IsClientInGame(client) && !IsFakeClient(client) && !IsClientObserver(client))
-            g_bIsAlive[client] = false;
-        CheckAliveHumans(client);
-    }
 }
+*/
 // player_connect, player_connect_client, player_disconnect, player_info
 public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadcast)
 {
@@ -77,25 +62,14 @@ public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadc
 }
 
 /* ========[Rounds]======== */
-// teamplay_round_start
-public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
+// Waiting For Players
+public void TF2_OnWaitingForPlayersEnd()
 {
-    if (!g_bWasBotStatusShown)
+    for (int i = 1; i <= MaxClients; i++)
     {
-        for (int i = 1; i <= MaxClients; i++)
+        if (IsClientInGame(i))
         {
-            if (IsClientInGame(i))
-            {
-                FakeClientCommand(i, "sm_nav_info");
-            }
+            FakeClientCommand(i, "sm_nav_info");
         }
-        g_bWasBotStatusShown = true;
     }
 }
-// teamplay_round_win
-/*
-public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
-{
-    RCBot2_KickAllBots(false);
-}
-*/

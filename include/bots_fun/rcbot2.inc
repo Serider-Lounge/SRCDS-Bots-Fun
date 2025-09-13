@@ -21,7 +21,7 @@ stock void RCBot2_KickAllBots(bool rejoin=true)
 }
 
 /**
- * In fill mode, enforce bot quota.
+ * In fill mode, enforce rcbot quota.
  */
 stock void RCBot2_UpdateBotQuota(int client)
 {
@@ -46,8 +46,7 @@ stock void RCBot2_UpdateBotQuota(int client)
             //RCBot2_CreateBot("");
             ServerCommand("rcbot%s addbot", IsDedicatedServer() ? "d" : ""); // Add RCBots this way instead due to a bug where 'rcbot_change_classes' isn't respected.
             rcbotCount++;
-            if ((humanCount + rcbotCount) == quota)
-            break;
+            if ((humanCount + rcbotCount) == quota) break;
         }
 
         while ((humanCount + rcbotCount) > quota)
@@ -55,13 +54,13 @@ stock void RCBot2_UpdateBotQuota(int client)
             bool kicked = false;
             for (int i = 1; i <= MaxClients; i++)
             {
-            if (IsRCBot2Client(i) && GetClientTeam(i) == GetClientTeam(client))
-            {
-                KickClient(i);
-                rcbotCount--;
-                kicked = true;
-                break;
-            }
+                if (IsRCBot2Client(i) && GetClientTeam(i) == GetClientTeam(client))
+                {
+                    KickClient(i);
+                    rcbotCount--;
+                    kicked = true;
+                    break;
+                }
             }
             if (!kicked) break;
         }

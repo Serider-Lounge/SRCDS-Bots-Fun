@@ -6,7 +6,7 @@
 #include "bots_fun/events.sp"
 
 // The rest is defined in <bots_fun>
-#define PLUGIN_VERSION  "25w37e"
+#define PLUGIN_VERSION  "25w37f"
 #define PLUGIN_AUTHOR   "Heapons"
 #define PLUGIN_DESC     "Automatically manage bots (+ RCBot2 support)."
 #define PLUGIN_URL      "https://github.com/Serider-Lounge/SRCDS-Bots-Fun"
@@ -58,17 +58,15 @@ public void OnPluginStart()
     HookEvent("post_inventory_application", Event_PlayerModelUpdate);
     HookEvent("teamplay_flag_event", Event_PlayerModelUpdate);
     HookEvent("player_spawn", Event_PlayerSpawn);
-    HookEvent("player_death", Event_PlayerDeath);
+    //HookEvent("player_death", Event_PlayerDeath);
     HookEvent("player_connect", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_connect_client", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_disconnect", Event_PlayerStatus, EventHookMode_Pre);
     HookEvent("player_info", Event_PlayerStatus, EventHookMode_Pre);
-    // Rounds
-    HookEvent("teamplay_round_start", Event_RoundStart);
-    //HookEvent("teamplay_round_win", Event_RoundEnd);
 
     // @everyone
     RegConsoleCmd("sm_nav_info", Command_NavInfo, "Display information about bot support.");
+    RegConsoleCmd("sm_bot", Command_NavInfo, "Display information about bot support.");
     
     // @admins
     RegAdminCmd("sm_nav_generate", Command_NavGenerate, ADMFLAG_CHEATS, "Generate navigation meshes.");
@@ -77,17 +75,20 @@ public void OnPluginStart()
 
 public void OnConfigsExecuted()
 {
-    g_bWasBotStatusShown = false;
+    char mapName[64];
+    GetCurrentMap(mapName, sizeof(mapName));
 
     g_iBotQuota = RoundFloat(g_ConVars[bot_ratio].FloatValue * GetMaxHumanPlayers());
 
     SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
+    SetConVarInt(FindConVar("sm_nav_auto_import"), 2);
 
     // Check if the plugin is enabled
     if (!g_ConVars[plugin_enabled].BoolValue)
     {
         SetConVarInt(g_ConVars[rcbot_bot_quota], 0);
         SetConVarInt(g_ConVars[tf_bot_quota], 0);
+        SetConVarInt(FindConVar("sm_navbot_quota_quantity"), 0);
 
         RCBot2_KickAllBots();
 
@@ -96,13 +97,30 @@ public void OnConfigsExecuted()
     }
 
     // Check for bot support
-    if (RCBot2_IsWaypointAvailable()) // RCBot2
+    if (IsNavMeshLoaded()) // NavBot
+    {
+        SetConVarInt(g_ConVars[rcbot_bot_quota], 0);
+        SetConVarInt(g_ConVars[tf_bot_quota], 0);
+    
+        SetConVarInt(FindConVar("sm_navbot_quota_quantity"), g_iBotQuota);
+        SetConVarString(FindConVar("sm_navbot_quota_mode"), "fill");
+        SetConVarBool(FindConVar("sm_navbot_tf_teammates_are_enemies"),
+                      IsVScript("deathmatch/deathmatch") ||
+                      IsVScript("gungame/gungame") ||
+                      StrContains(mapName, "gg_") == 0 ||
+                      FindConVar("mp_friendlyfire").BoolValue);
+
+        PrintToServer("[%s] NavBot Navigation Meshes detected, adding NavBot clients...", PLUGIN_NAME);
+        PrintToServer("[%s] sm_navbot_quota_quantity: %d.", PLUGIN_NAME, FindConVar("sm_navbot_quota_quantity").IntValue);
+    }
+    else if (RCBot2_IsWaypointAvailable()) // RCBot2
     {
         int TFMVMDefendersTeamSize = GetConVarInt(FindConVar("tf_mvm_defenders_team_size"));
 
         SetConVarInt(g_ConVars[rcbot_bot_quota],
                      IsGameMode("mann_vs_machine") ? TFMVMDefendersTeamSize : g_iBotQuota);
         SetConVarInt(g_ConVars[tf_bot_quota], 0);
+        SetConVarInt(FindConVar("sm_navbot_quota_quantity"), 0);
 
         PrintToServer("[%s] RCBot2 waypoints detected, adding RCBot clients...", PLUGIN_NAME);
         PrintToServer("[%s] rcbot_bot_quota: %d.", PLUGIN_NAME, g_ConVars[rcbot_bot_quota].IntValue);
@@ -136,9 +154,6 @@ public void OnConfigsExecuted()
 
 public void OnClientDisconnect(int client)
 {
-    if (IsPermaDeathMode())
-        CheckAliveHumans(client);
-    
     if (!IsFakeClient(client) && RCBot2_IsWaypointAvailable())
         RCBot2_UpdateBotQuota(client);
 }

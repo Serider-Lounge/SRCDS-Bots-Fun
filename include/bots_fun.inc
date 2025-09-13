@@ -1,5 +1,7 @@
 #include <sourcemod>
+#undef REQUIRE_EXTENSIONS
 #include <tf2_stocks>
+#define REQUIRE_EXTENSIONS
 #include <multicolors>
 
 #define PLUGIN_NAME     "Bots Fun"
@@ -23,16 +25,13 @@ enum
 }
 
 ConVar g_ConVars[MAXCONVARS];
-
 int g_iBotQuota;
-
-bool g_bIsAlive[MAXPLAYERS + 1],
-     g_bWasBotStatusShown;
-
+bool g_bIsAlive[MAXPLAYERS + 1];
 char g_strRCBotQuotaMode[16];
-
 Handle g_hConfigTrie = INVALID_HANDLE;
 
+#undef REQUIRE_EXTENSIONS
+#include <navbot>
 #include <bots_fun/clients>
 #include <bots_fun/console>
 #include <bots_fun/gamemodes>

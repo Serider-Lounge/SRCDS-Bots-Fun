@@ -21,3 +21,19 @@ stock bool IsPermaDeathMode()
     return g_ConVars[humans_only].BoolValue &&
            (IsGameMode("arena") || GameRules_GetProp("m_iRoundState") == 7);
 }
+
+/**
+ * Check if the game mode is VScript-based.
+ * This prevents the plugin from interfering with VScript equivalents of VIP mode.
+ * @param		path		Name of the vscript file
+ * @return 					True if the vscript file exists
+ */
+bool IsVScript(char path[PLATFORM_MAX_PATH]) {
+	Format(path, sizeof(path), "scripts/vscripts/%s.nut", path);
+	File file = OpenFile(path, "r", true);
+	if (file != null) {
+		CloseHandle(file);
+		return true;
+	}
+	return false;
+}
