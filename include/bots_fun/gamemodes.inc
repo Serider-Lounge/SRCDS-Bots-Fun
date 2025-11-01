@@ -28,7 +28,7 @@ stock bool IsPermaDeathMode()
  * @param		path		Name of the vscript file
  * @return 					True if the vscript file exists
  */
-bool IsVScript(char path[PLATFORM_MAX_PATH]) {
+stock bool IsVScript(char path[PLATFORM_MAX_PATH]) {
 	Format(path, sizeof(path), "scripts/vscripts/%s.nut", path);
 	File file = OpenFile(path, "r", true);
 	if (file != null) {

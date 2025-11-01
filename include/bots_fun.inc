@@ -9,8 +9,9 @@
 
 enum
 {
-    // Built-in
+    // External
     tf_bot_quota,
+    navbot_bot_quota,
 
     // Plugin
     plugin_enabled,
@@ -20,20 +21,32 @@ enum
     humans_only,
     rename_bots,
     
-    // Constants
     MAXCONVARS
 }
 
 ConVar g_ConVars[MAXCONVARS];
-int g_iBotQuota;
-bool g_bIsAlive[MAXPLAYERS + 1];
-char g_strRCBotQuotaMode[16];
-Handle g_hConfigTrie = INVALID_HANDLE;
+char g_RCBotQuotaMode[16];
+Handle g_hConfigTrie;
+
+stock int GetAliveHumansCount()
+{
+    int count;
+    for(int i = 1; i <= MaxClients; i++)
+    {
+        if(!IsClientConnected(i) || !IsClientInGame(i))
+            continue;
+
+        if(IsFakeClient(i) || !IsPlayerAlive(i))
+            continue;
+        
+        count++;
+    }
+
+    return count - 1;
+}
 
 #undef REQUIRE_EXTENSIONS
 #include <navbot>
-#include <bots_fun/clients>
-#include <bots_fun/console>
 #include <bots_fun/gamemodes>
 #include <bots_fun/navmesh>
 #include <bots_fun/rcbot2>
