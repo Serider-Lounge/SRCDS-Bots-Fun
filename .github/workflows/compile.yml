@@ -34,6 +34,18 @@ jobs:
           version: '1.13.x'
           version-file: ./bots_fun.sp
 
+      - name: Download Third-Party Includes
+        working-directory: ${{ env.TPINCLUDES_PATH }}
+        run: |
+          wget https://github.com/caxanga334/NavBot/blob/main/scripting/include/navbot.inc -O navbot.inc
+          wget https://github.com/caxanga334/NavBot/blob/main/scripting/include/navbot/bots.inc -O navbot/bots.inc
+          wget https://github.com/caxanga334/NavBot/blob/main/scripting/include/navbot/interfaces/path.inc -O navbot/interfaces/path.inc
+          wget https://github.com/APGRoboCop/rcbot2/blob/master/scripting/include/rcbot2.inc -O rcbot2.inc
+          wget https://github.com/JoinedSenses/SourceMod-IncludeLibrary/blob/master/include/multicolors.inc -O multicolors.inc
+          wget https://github.com/JoinedSenses/SourceMod-IncludeLibrary/blob/master/include/multicolors/colors.inc -O multicolors/colors.inc
+          wget https://github.com/JoinedSenses/SourceMod-IncludeLibrary/blob/master/include/multicolors/morecolors.inc -O multicolors/morecolors.inc
+          ls -lah
+
       - name: Compile plugins
         run: |
           for file in bots_fun.sp
@@ -45,7 +57,7 @@ jobs:
           ls
         working-directory: ${{ env.SCRIPTS_PATH }}
 
-      - name: Move smx to plugins directory
+      - name: Move SMX to plugins directory
         run: |
           mkdir -p plugins
           mv bots_fun.smx plugins/

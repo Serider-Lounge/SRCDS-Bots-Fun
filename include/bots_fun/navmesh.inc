@@ -21,25 +21,30 @@ stock int NavMesh_GetNavAreaCount()
 /**
  * Check if navigation meshes are present.
  * 
- * @return True if GetNavAreaCount() > 0 or <mapname>.nav is present
+ * @return True if GetNavAreaCount() > 0
  */
 stock bool NavMesh_IsLoaded()
 {
+    return NavMesh_GetNavAreaCount() > 0;
+}
+
+/**
+ * Check if <mapname>.nav exists.
+ * 
+ * @return True if <mapname>.nav is present
+ */
+stock bool NavMesh_FileExists()
+{
     char mapName[PLATFORM_MAX_PATH];
     GetCurrentMap(mapName, sizeof(mapName));
-    /*
-    if (strip_workshop_prefix && StrContains(mapName, "workshop/", false) == 0)
-        strcopy(mapName, sizeof(mapName), mapName[9]);
-    */
-
+    
     char navPath[PLATFORM_MAX_PATH];
     Format(navPath, sizeof(navPath), "maps/%s.nav", mapName);
 
-    Handle navFile = OpenFile(navPath, "r", true);
+    Handle file = OpenFile(navPath, "r", true);
 
-    bool navFileExists = (navFile != INVALID_HANDLE);
-    CloseHandle(navFile);
+    bool fileExists = (file != INVALID_HANDLE);
+    CloseHandle(file);
 
-    return NavMesh_GetNavAreaCount() > 0 ||
-           navFileExists;
+    return fileExists;
 }

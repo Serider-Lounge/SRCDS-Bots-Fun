@@ -6,7 +6,7 @@ public Action Command_NavInfo(int client, int args)
     if (IsNavMeshLoaded()) // NavBot
     {
         strcopy(botType, sizeof(botType), "NavBot");
-        botQuota = FindConVar("sm_navbot_quota_quantity").IntValue;
+        botQuota = g_ConVars[navbot_bot_quota].IntValue;
     }
     else if (RCBot2_IsWaypointAvailable()) // RCBot2
     {
@@ -18,7 +18,7 @@ public Action Command_NavInfo(int client, int args)
         strcopy(botType, sizeof(botType), "TFBot");
         botQuota = g_ConVars[tf_bot_quota].IntValue;
         CReplyToCommand(client,
-            "[{red}%s{default}]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default}\n- {olive}Area Count{default}: {lightcyan}%d",
+            "[{red}%s{default}]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota{default}: {lightcyan}%d{default}\n- {olive}Area Count{default}: {lightcyan}%d",
             PLUGIN_NAME,
             botType,
             botQuota,
@@ -31,26 +31,72 @@ public Action Command_NavInfo(int client, int args)
     }
 
     CReplyToCommand(client,
-        "[{red}%s{default}]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota: {lightcyan}%d{default}",
-        PLUGIN_NAME,
-        botType,
-        botQuota);
+                    "[{red}%s{default}]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota{default}: {lightcyan}%d{default}",
+                    PLUGIN_NAME,
+                    botType,
+                    botQuota);
 
     return Plugin_Handled;
 }
 
 public Action Command_NavGenerate(int client, int args)
 {
-    CheatCommand("nav_generate");
+    if (!IsClientAdmin(client, ADMFLAG_CHEATS))
+    {
+        return Plugin_Handled;
+    }
 
-    CReplyToCommand(client, "[%s] Generating navigation meshes...", PLUGIN_NAME);
+    if (NavMesh_IsLoaded())
+    {
+        g_ConVars[bot_ratio].FloatValue = 0.0;
+        for (int i = 0; i <= MaxClients; i++)
+        {
+            if (IsFakeClient(i))
+            {
+                KickClient(i);
+            }
+        }
+        SetCommandFlags("nav_generate", GetCommandFlags("nav_generate") & ~FCVAR_CHEAT);
+        ServerCommand("nav_generate");
+        CShowActivity(client, "[{red}%s{default}]: Generating Navigation Mesh... (Area Count: {lightgreen}%d{default})", PLUGIN_NAME, NavMesh_GetNavAreaCount());
+    }
+    else
+    {
+        CShowActivity(client, "[{red}%s{default}]: This map does not have any Navigation Mesh.", PLUGIN_NAME);
+    }
     return Plugin_Handled;
 }
 
 public Action Command_NavGenerateIncremental(int client, int args)
 {
-    CheatCommand("nav_generate_incremental");
+    if (!IsClientAdmin(client, ADMFLAG_CHEATS))
+    {
+        return Plugin_Handled;
+    }
 
-    CReplyToCommand(client, "[{red}%s{default}] Generating navigation meshes incrementally...", PLUGIN_NAME);
+    if (NavMesh_IsLoaded())
+    {
+        g_ConVars[bot_ratio].FloatValue = 0.0;
+        for (int i = 0; i <= MaxClients; i++)
+        {
+            if (IsFakeClient(i))
+            {
+                KickClient(i);
+            }
+        }
+        SetCommandFlags("nav_generate_incremental", GetCommandFlags("nav_generate_incremental") & ~FCVAR_CHEAT);
+        ServerCommand("nav_generate_incremental");
+        CShowActivity(client, "[{red}%s{default}]: Generating Navigation Mesh incrementally... (Area Count: {lightgreen}%d{default})", PLUGIN_NAME, NavMesh_GetNavAreaCount());
+    }
+    else
+    {
+        CShowActivity(client, "[{red}%s{default}]: This map does not have any Navigation Mesh.", PLUGIN_NAME);
+    }
     return Plugin_Handled;
+}
+
+/* ==[Stocks]== */
+bool IsClientAdmin(int client, int flags)
+{
+    return client == 0 || GetUserFlagBits(client) & flags;
 }

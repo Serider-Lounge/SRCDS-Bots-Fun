@@ -16,12 +16,12 @@ public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBro
 public Action Timer_SetNameFromModel(Handle timer, int client)
 {
     char path[PLATFORM_MAX_PATH],
-         botName[PLATFORM_MAX_PATH];
+         name[PLATFORM_MAX_PATH];
 
     GetClientModel(client, path, sizeof(path));
 
-    if (GetBotName(path, botName, sizeof(botName)))
-        SetClientName(client, botName);
+    if (GetBotName(path, name, sizeof(name)))
+        SetClientName(client, name);
 
     return Plugin_Stop;
 }
@@ -39,20 +39,30 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
 }
 
 // player_death
-/*
 public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
-    if (IsFakeClient(GetClientOfUserId(event.GetInt("userid"))) || event.GetInt("death_flags") == 32) // Feign Death (i.e. Dead Ringer)
+    if (!g_ConVars[humans_only].BoolValue)
         return;
+
+    int client = GetClientOfUserId(event.GetInt("userid"));
+    if (IsFakeClient(client) || event.GetInt("death_flags") & 32) // Feign Death (Dead Ringer)
+        return;
+
+    if (TF2_IsPermaDeathMode() && GetAliveHumansCount() == 0)
+    {
+        ServerCommand("sm_kick @bots");
+    }
 }
-*/
+
 // player_connect, player_connect_client, player_disconnect, player_info
 public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadcast)
 {
+    int client = GetClientOfUserId(event.GetInt("userid"));
+    if (client <= 0 || !IsClientInGame(client))
+        return Plugin_Changed;
+
     event.BroadcastDisabled = event.GetBool("bot");
 
-    // Call quota update here for human connect/disconnect
-    int client = GetClientOfUserId(event.GetInt("userid"));
     if (!IsFakeClient(client) && IsClientInGame(client))
     {
         RCBot2_UpdateBotQuota(client);
@@ -63,13 +73,10 @@ public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadc
 
 /* ========[Rounds]======== */
 // Waiting For Players
-public void TF2_OnWaitingForPlayersEnd()
+public void TF2_OnWaitingForPlayersStart()
 {
     for (int i = 1; i <= MaxClients; i++)
     {
-        if (IsClientInGame(i))
-        {
-            FakeClientCommand(i, "sm_nav_info");
-        }
+        FakeClientCommand(i, "sm_nav_info");
     }
 }

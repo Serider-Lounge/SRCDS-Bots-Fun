@@ -4,7 +4,7 @@
  * @param  gamemode tf_logic_<gamemode> (e.g., "player_destruction" for "tf_logic_player_destruction")
  * @return          True if the entity is found
  */
-stock bool IsGameMode(const char[] gamemode)
+stock bool TF2_IsGameMode(const char[] gamemode)
 {
     char entity[64];
     Format(entity, sizeof(entity), "tf_logic_%s", gamemode);
@@ -16,10 +16,10 @@ stock bool IsGameMode(const char[] gamemode)
  * 
  * @return True if the current game mode is Arena Mode or Sudden Death.
  */
-stock bool IsPermaDeathMode()
+stock bool TF2_IsPermaDeathMode()
 {
     return g_ConVars[humans_only].BoolValue &&
-           (IsGameMode("arena") || GameRules_GetProp("m_iRoundState") == 7);
+           (TF2_IsGameMode("arena") || GameRules_GetProp("m_iRoundState") == 7);
 }
 
 /**
@@ -28,7 +28,7 @@ stock bool IsPermaDeathMode()
  * @param		path		Name of the vscript file
  * @return 					True if the vscript file exists
  */
-stock bool IsVScript(char path[PLATFORM_MAX_PATH]) {
+stock bool VScriptExists(char path[PLATFORM_MAX_PATH]) {
 	Format(path, sizeof(path), "scripts/vscripts/%s.nut", path);
 	File file = OpenFile(path, "r", true);
 	if (file != null) {

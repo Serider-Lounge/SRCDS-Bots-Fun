@@ -1,4 +1,4 @@
-# [TF2/ANY?] Bots Fun (w/ [RCBot2](https://github.com/APGRoboCop/rcbot2) Support‼)
+# [TF2/ANY?] Bots Fun (with [NavBot](https://github.com/caxanga334/NavBot) & [RCBot2](https://github.com/APGRoboCop/rcbot2) Support‼)
 ### Combine this with [<img src="https://avatars.githubusercontent.com/u/10157643" alt="@caxanga334" width="16" height="16" style="vertical-align:middle; border-radius:3px;"/> caxanga334](https://github.com/caxanga334)'s [Bot Auto-Balance](https://github.com/caxanga334/sm-plugins/actions) plugin‼
 # Why?
 ### [@Heapons](https://github.com/Heapons)
@@ -39,19 +39,21 @@ This is all configurable in [`addons/sourcemod/configs/bots_fun.cfg`](https://gi
 When all **humans** have died, the round ends pre-maturely so players won't have to sit and wait until bots are done.
 
 ## Commands
-| Name                          | Description                                                               |
-|-------------------------------|---------------------------------------------------------------------------|
-| `sm_nav_info`                 | Displays information about bot support.                                   |
-| `sm_nav_generate`             | Executes `nav_generate` without having to enable `sv_cheats`.             |
-| `sm_nav_generate_incremental` | Executes `nav_generate_incremental` without having to enable `sv_cheats`. |
+|Name|Description|
+|-|-|
+|`sm_nav_info` / `sm_bot`|Displays information about bot support.|
+
+> [!NOTE]
+> `nav_generate` and `nav_generate_incremental` have also gotten their cheat flags removed!
 
 ## ConVars
 > ### `cfg/sourcemod/bots_fun.cfg`
 
-| Name                   | Default   | Description                                                                                       |
-|------------------------|-----------|---------------------------------------------------------------------------------------------------|
-| `sm_bot_enabled`       | `1`       | Toggle the plugin.                                                                                |
-| `sm_bot_ratio`         | `0.25`    | Ratio of bots to max players (0.0 – 1.0).                                                         |
-| `rcbot_bot_quota`      | `0`       | Determines the total number of rcbots in the game.                                                |
-| `rcbot_bot_quota_mode` | `normal`  | Type of quota: `normal` or `fill`.                                                                |
-| `sm_bot_rename_bots`   | `1`       | If enabled, bots will be renamed based on their player model.                                     |=
+|Name| Default|Description|
+|-|-|-|
+|`sm_bot_enabled`|`1`|Toggle the plugin.|
+|`sm_bot_ratio`|`0.25`|Ratio of the bot quota to max players (0.0 – 1.0).|
+|`rcbot_bot_quota`|`0`|Determines the total number of RCBot clients in the game.|
+|`rcbot_bot_quota_mode`|`normal`|Determines the type of RCBot quota: `normal` or `fill`. If `fill`, the server keeps N players, where N is the quota.|
+|`sm_bot_humans_only`|`1`|End the round prematurely in Arena Mode / Sudden Death when all human players are dead.|
+|`sm_bot_rename_bots`|`1`|If enabled, bots will be renamed based on their player model.|

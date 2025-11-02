@@ -51,3 +51,7 @@ vector.inc
 version*.inc
 
 !include/bots_fun/*
+
+multicolors*
+navbot*
+rcbot2*
