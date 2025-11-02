@@ -35,7 +35,7 @@ jobs:
           version-file: ./bots_fun.sp
 
       - name: Download Third-Party Includes
-        working-directory: ${{ env.TPINCLUDES_PATH }}
+        working-directory: ${{ env.SCRIPTS_PATH }}/include
         run: |
           mkdir -p navbot navbot/interfaces multicolors
           wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/main/scripting/include/navbot.inc -O navbot.inc
