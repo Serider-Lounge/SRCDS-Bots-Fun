@@ -3,12 +3,11 @@
  */
 #undef REQUIRE_EXTENSIONS
 #include <rcbot2>
-#define REQUIRE_EXTENSIONS
 
 /**
  * In fill mode, enforce rcbot quota.
  */
-stock void RCBot2_UpdateBotQuota(int client)
+stock void RCBot2_UpdateBotQuota()
 {
     GetConVarString(g_ConVars[rcbot_bot_quota_mode], g_RCBotQuotaMode, sizeof(g_RCBotQuotaMode));
     if (strcmp(g_RCBotQuotaMode, "fill") == 0)
@@ -19,31 +18,49 @@ stock void RCBot2_UpdateBotQuota(int client)
 
         for (int i = 1; i <= MaxClients; i++)
         {
-            if (IsClientInGame(i) && !IsFakeClient(i) && !IsClientObserver(i))
+            if (IsClientInGame(i) && !IsFakeClient(i) && GetClientTeam(i) > 1) // Only count humans on a team
                 humanCount++;
-
-            if (IsRCBot2Client(i))
+            if (IsRCBot2Client(i) && GetClientTeam(i) > 1) // Only count bots on a team
                 rcbotCount++;
         }
-        
-        while ((humanCount + rcbotCount) < quota)
+
+        int botsToAdd = quota - (humanCount + rcbotCount);
+
+        for (int i = 0; i < botsToAdd; i++)
         {
-            ServerCommand("rcbot%s addbot", IsDedicatedServer() ? "d" : ""); // Add RCBots this way instead due to a bug where 'rcbot_change_classes' isn't respected.
+            if ((humanCount + rcbotCount) >= quota)
+                break;
+            ServerCommand("rcbot%s addbot", IsDedicatedServer() ? "d" : "");
             rcbotCount++;
-            if ((humanCount + rcbotCount) == quota) break;
         }
 
-        while ((humanCount + rcbotCount) > quota)
+        int botsToKick = rcbotCount - (quota - humanCount);
+        while (botsToKick > 0)
         {
             bool kicked = false;
             for (int i = 1; i <= MaxClients; i++)
             {
-                if (IsRCBot2Client(i) && GetClientTeam(i) == GetClientTeam(client))
+                if (IsRCBot2Client(i) && !IsPlayerAlive(i) && GetClientTeam(i) > 1)
                 {
                     KickClient(i);
                     rcbotCount--;
+                    botsToKick--;
                     kicked = true;
                     break;
+                }
+            }
+            if (!kicked)
+            {
+                for (int i = 1; i <= MaxClients; i++)
+                {
+                    if (IsRCBot2Client(i) && GetClientTeam(i) > 1)
+                    {
+                        KickClient(i);
+                        rcbotCount--;
+                        botsToKick--;
+                        kicked = true;
+                        break;
+                    }
                 }
             }
             if (!kicked) break;

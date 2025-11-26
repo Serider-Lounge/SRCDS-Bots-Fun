@@ -1,4 +1,7 @@
 #include <bots_fun>
+#undef REQUIRE_EXTENSIONS
+#include <rcbot2>
+#include <navbot>
 
 #include "bots_fun/commands.sp"
 #include "bots_fun/configs.sp"
@@ -6,12 +9,10 @@
 #include "bots_fun/events.sp"
 
 // The rest is defined in <bots_fun>
-#define PLUGIN_VERSION  "25w44a"
+#define PLUGIN_VERSION  "25w48a"
 #define PLUGIN_AUTHOR   "Heapons"
 #define PLUGIN_DESC     "Automatically manage bots."
 #define PLUGIN_URL      "https://github.com/Serider-Lounge/SRCDS-Bots-Fun"
-
-#define CVAR_NAV_GENERATE "Generate a Navigation Mesh for the current map and save it to disk."
 
 /* ========[Forwards]======== */
 public void OnPluginStart()
@@ -24,32 +25,32 @@ public void OnPluginStart()
     // sm_bot_enabled
     g_ConVars[plugin_enabled] = CreateConVar("sm_bot_enabled", "1",
                                              "Toggle the plugin.",
-                                             FCVAR_REPLICATED, true, 0.0, true, 1.0);
+                                             FCVAR_NOTIFY, true, 0.0, true, 1.0);
     HookConVarChange(g_ConVars[plugin_enabled], ConVar_BotRatio);
     // sm_bot_ratio
     g_ConVars[bot_ratio] = CreateConVar("sm_bot_ratio", "0.25",
                                         "Ratio of the bot quota to max players.",
-                                        FCVAR_REPLICATED,
+                                        FCVAR_NOTIFY,
                                         true, 0.0, true, 1.0);
     HookConVarChange(g_ConVars[bot_ratio], ConVar_BotRatio);
     // rcbot_bot_quota
     g_ConVars[rcbot_bot_quota] = CreateConVar("rcbot_bot_quota", "0",
                                               "Determines the total number of rcbots in the game.",
-                                              FCVAR_REPLICATED,
+                                              FCVAR_NOTIFY,
                                               true, 0.0, true, float(MAXPLAYERS));
     HookConVarChange(g_ConVars[rcbot_bot_quota], ConVar_RCBotQuota);
     // rcbot_bot_quota_mode
     g_ConVars[rcbot_bot_quota_mode] = CreateConVar("rcbot_bot_quota_mode", "normal",
                                                    "Determines the type of quota. Allowed values: 'normal', 'fill'. If 'fill', the server will adjust bots to keep N players in the game, where N is bot_quota.",
-                                                   FCVAR_REPLICATED);
+                                                   FCVAR_NOTIFY);
     // sm_bot_humans_only
     g_ConVars[humans_only] = CreateConVar("sm_bot_humans_only", "1",
                                           "Whether to end the round prematurely if all human players are dead in Arena Mode or Sudden Death",
-                                          FCVAR_REPLICATED, true, 0.0, true, 1.0);
+                                          FCVAR_NOTIFY, true, 0.0, true, 1.0);
     // sm_bot_rename_bots
     g_ConVars[rename_bots] = CreateConVar("sm_bot_rename_bots", "1",
                                           "If enabled, bots will be renamed based on their player model.",
-                                          FCVAR_REPLICATED, true, 0.0, true, 1.0);
+                                          FCVAR_NOTIFY, true, 0.0, true, 1.0);
 
     /* Configs */
     AutoExecConfig(true, "bots_fun");
@@ -99,7 +100,7 @@ public void OnConfigsExecuted()
     }
 
     // Check for bot support
-    if (IsNavMeshLoaded()) // NavBot
+    if (NavBotNavMesh.IsLoaded()) // NavBot
     {
         SetConVarInt(g_ConVars[rcbot_bot_quota], 0);
         SetConVarInt(g_ConVars[tf_bot_quota], 0);
@@ -122,8 +123,10 @@ public void OnConfigsExecuted()
 
         PrintToServer("[%s] RCBot2 waypoints detected, adding RCBot clients...", PLUGIN_NAME);
         PrintToServer("[%s] rcbot_bot_quota: %d.", PLUGIN_NAME, g_ConVars[rcbot_bot_quota].IntValue);
+
+        RCBot2_UpdateBotQuota();
     }
-    else if (NavMesh_IsLoaded() && !TF2_IsGameMode("mann_vs_machine")) // TFBot
+    else if (NavMesh.IsLoaded() && !TF2_IsGameMode("mann_vs_machine")) // TFBot
     {
         ConVar tf_bot_offense_must_push_time = FindConVar("tf_bot_offense_must_push_time");
         int oldPushTime = GetConVarInt(tf_bot_offense_must_push_time);
@@ -149,6 +152,6 @@ public void OnConfigsExecuted()
 
 public void OnClientDisconnect(int client)
 {
-    if (!IsFakeClient(client) && RCBot2_IsWaypointAvailable())
-        RCBot2_UpdateBotQuota(client);
+    if (RCBot2_IsWaypointAvailable() && !IsFakeClient(client))
+        RCBot2_UpdateBotQuota();
 }

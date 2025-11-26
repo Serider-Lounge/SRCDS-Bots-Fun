@@ -10,7 +10,7 @@ public void Event_PlayerModelUpdate(Event event, const char[] name, bool dontBro
     if (!IsPlayerAlive(client) || !IsFakeClient(client))
         return;
 
-    CreateTimer(0.100001, Timer_SetNameFromModel, client);
+    CreateTimer(0.100001, Timer_SetNameFromModel, client, TIMER_FLAG_NO_MAPCHANGE);
 }
 
 public Action Timer_SetNameFromModel(Handle timer, int client)
@@ -34,8 +34,6 @@ public void Event_PlayerSpawn(Event event, const char[] name, bool dontBroadcast
     {
         return;
     }
-
-    RCBot2_UpdateBotQuota(client);
 }
 
 // player_death
@@ -63,9 +61,9 @@ public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadc
 
     event.BroadcastDisabled = event.GetBool("bot");
 
-    if (!IsFakeClient(client) && IsClientInGame(client))
+    if (RCBot2_IsWaypointAvailable() && !IsFakeClient(client) && IsClientInGame(client))
     {
-        RCBot2_UpdateBotQuota(client);
+        RCBot2_UpdateBotQuota();
     }
 
     return Plugin_Changed;
@@ -77,6 +75,6 @@ public void TF2_OnWaitingForPlayersStart()
 {
     for (int i = 1; i <= MaxClients; i++)
     {
-        FakeClientCommand(i, "sm_nav_info");
+        Command_NavInfo(i, 0);
     }
 }

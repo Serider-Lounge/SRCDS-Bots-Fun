@@ -8,11 +8,10 @@ So what about the maps that _do_ support bots, then? Well, there were few issues
   - And remove bots on maps that do not support bots, so they don't needlessly take up player slots (because they'd just be standing still).
 - I don't always know whether a map supports bots or not.
 - **TFBots** kind of suck— they do the job, but they're only supported in a handful of gamemodes, and they're a bit too dumb for my own liking as well.
-- I found out about [*RCBot2*](https://github.com/APGRoboCop/rcbot2), but I don't want to manually alternate between **RCBots** and **TFBots** depending on whether waypoints or navmeshes are available.
+- I found out about custom bots such as [*RCBot2*](https://github.com/APGRoboCop/rcbot2) and [*NavBot*](https://github.com/caxanga334/NavBot), but I don't want to manually alternate between **RCBots** and **TFBots** depending on whether waypoints or navmeshes are available.
 
 > [!NOTE]
-> Despite the integration of [*RCBot2*](https://github.com/APGRoboCop/rcbot2), this has primarily been made for, and tested in, [*Team Fortress 2*](https://store.steampowered.com/app/440/Team_Fortress_2).
-> ###### There might be support for other games, but no promise.
+> Despite the integration of agnostic third-parties (NavBot, RCBot2, ...), this has primarily been made for, and tested in, [<img src="https://cdn.fastly.steamstatic.com/steamcommunity/public/images/apps/440/033bdd91842b6aca0633ee1e5f3e6b82f2e8962f.ico" width="16" height="16" style="vertical-align: text-bottom;"> **Team Fortress 2**](https://store.steampowered.com/app/440). Pull requests are welcome‼
 
 # So, what does this plugin do?
 ## Auto-Joining
@@ -25,11 +24,11 @@ This plugin automatically adds/removes bots for you depending on the map. Here's
 | Valve Nav. Mesh             | Spawn TFBots.         |
 | *No bot paths available...* | All bots are removed. |
 
-The priority order is: **RCBot** > **TFBot** > ***None***.<br>
-Bot join/leave messages don't show up in chat to prevent spam.<br>
+The priority order is: **NavBot** > **RCBot** > **TFBot** > ***None***.<br>
+> Bot join/leave messages don't show up in chat to prevent spam.<br>
 
 > [!NOTE]
-> In [Mann Vs. Machine](https://wiki.teamfortress.com/wiki/Mann_vs._Machine), the **RCBot** quota will use `tf_mvm_defenders_team_size`'s value instead of `sm_bot_ratio` or `rcbot_bot_quota`.
+> In [Mann Vs. Machine](https://wiki.teamfortress.com/wiki/Mann_vs._Machine), the quota will be based on `tf_mvm_defenders_team_size`'s value instead of `sm_bot_ratio`.
 
 ## Auto-Renaming
 The bots will pick a name depending on their player model (e.g. `models/player/scout.mdl` → `Scout`).<br>

@@ -3,7 +3,7 @@ public Action Command_NavInfo(int client, int args)
     char botType[16];
     int botQuota;
 
-    if (IsNavMeshLoaded()) // NavBot
+    if (NavBotNavMesh.IsLoaded()) // NavBot
     {
         strcopy(botType, sizeof(botType), "NavBot");
         botQuota = g_ConVars[navbot_bot_quota].IntValue;
@@ -13,7 +13,7 @@ public Action Command_NavInfo(int client, int args)
         strcopy(botType, sizeof(botType), "RCBot2");
         botQuota = g_ConVars[rcbot_bot_quota].IntValue;
     }
-    else if (NavMesh_IsLoaded()) // TFBot
+    else if (NavMesh.IsLoaded()) // TFBot
     {
         strcopy(botType, sizeof(botType), "TFBot");
         botQuota = g_ConVars[tf_bot_quota].IntValue;
@@ -22,7 +22,7 @@ public Action Command_NavInfo(int client, int args)
             PLUGIN_NAME,
             botType,
             botQuota,
-            NavMesh_GetNavAreaCount());
+            NavMesh.GetNavAreaCount());
         return Plugin_Handled;
     }
     else // Unsupported
@@ -46,7 +46,7 @@ public Action Command_NavGenerate(int client, int args)
         return Plugin_Handled;
     }
 
-    if (NavMesh_IsLoaded())
+    if (NavMesh.IsLoaded())
     {
         g_ConVars[bot_ratio].FloatValue = 0.0;
         for (int i = 0; i <= MaxClients; i++)
@@ -58,7 +58,7 @@ public Action Command_NavGenerate(int client, int args)
         }
         SetCommandFlags("nav_generate", GetCommandFlags("nav_generate") & ~FCVAR_CHEAT);
         ServerCommand("nav_generate");
-        CShowActivity(client, "[{red}%s{default}]: Generating Navigation Mesh... (Area Count: {lightgreen}%d{default})", PLUGIN_NAME, NavMesh_GetNavAreaCount());
+        CShowActivity(client, "[{red}%s{default}]: Generating Navigation Mesh... (Area Count: {lightgreen}%d{default})", PLUGIN_NAME, NavMesh.GetNavAreaCount());
     }
     else
     {
@@ -74,7 +74,7 @@ public Action Command_NavGenerateIncremental(int client, int args)
         return Plugin_Handled;
     }
 
-    if (NavMesh_IsLoaded())
+    if (NavMesh.IsLoaded())
     {
         g_ConVars[bot_ratio].FloatValue = 0.0;
         for (int i = 0; i <= MaxClients; i++)
@@ -86,7 +86,7 @@ public Action Command_NavGenerateIncremental(int client, int args)
         }
         SetCommandFlags("nav_generate_incremental", GetCommandFlags("nav_generate_incremental") & ~FCVAR_CHEAT);
         ServerCommand("nav_generate_incremental");
-        CShowActivity(client, "[{red}%s{default}]: Generating Navigation Mesh incrementally... (Area Count: {lightgreen}%d{default})", PLUGIN_NAME, NavMesh_GetNavAreaCount());
+        CShowActivity(client, "[{red}%s{default}]: Generating Navigation Mesh incrementally... (Area Count: {lightgreen}%d{default})", PLUGIN_NAME, NavMesh.GetNavAreaCount());
     }
     else
     {

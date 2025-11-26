@@ -40,25 +40,20 @@ public bool GetBotName(const char[] path, char[] buffer, int maxlen)
         return false;
 
     char mdl[PLATFORM_MAX_PATH];
-    int len = strlen(path);
-    int start = len - 1;
+    Regex regex = new Regex("[^/\\\\]+(?=\\.[^./\\\\]+$)", PCRE_CASELESS);
+    if (!regex)
+        return false;
 
-    while (start >= 0 && path[start] != '/' && path[start] != '\\')
-        start--;
-    start++;
-    int end = len - 1;
-
-    while (end > start && path[end] != '.')
-        end--;
-    if (end > start)
+    if (regex.Match(path) > 0)
     {
-        strcopy(mdl, sizeof(mdl), path[start]);
-        mdl[end - start] = '\0';
+        regex.GetSubString(0, mdl, sizeof(mdl));
     }
     else
     {
-        strcopy(mdl, sizeof(mdl), path[start]);
+        delete regex;
+        return false;
     }
+    delete regex;
 
     return GetTrieString(g_hConfigTrie, mdl, buffer, maxlen);
 }

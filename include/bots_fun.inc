@@ -21,10 +21,10 @@ enum
     humans_only,
     rename_bots,
     
-    MAXCONVARS
+    MAX_CONVARS
 }
 
-ConVar g_ConVars[MAXCONVARS];
+ConVar g_ConVars[MAX_CONVARS];
 char g_RCBotQuotaMode[16];
 Handle g_hConfigTrie;
 
@@ -45,8 +45,7 @@ stock int GetAliveHumansCount()
     return count - 1;
 }
 
-#undef REQUIRE_EXTENSIONS
-#include <navbot>
 #include <bots_fun/gamemodes>
 #include <bots_fun/navmesh>
+#undef REQUIRE_EXTENSIONS
 #include <bots_fun/rcbot2>
