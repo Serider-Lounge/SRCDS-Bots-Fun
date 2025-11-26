@@ -48,6 +48,10 @@ jobs:
           wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot.inc -O navbot.inc
           wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot/nav_mesh.inc -O navbot/nav_mesh.inc
           wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot/bots.inc -O navbot/bots.inc
+          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot/mod.inc -O navbot/mod.inc
+          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot/interfaces/path.inc -O navbot/interfaces/path.inc
+          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot/interfaces/base_interface.inc -O navbot/interfaces/base_interface.inc
+          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot/interfaces/inventory.inc -O navbot/interfaces/inventory.inc
           wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot/interfaces/path.inc -O navbot/interfaces/path.inc
           ls -lah
 
