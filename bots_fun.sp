@@ -10,7 +10,7 @@
 #include "bots_fun/events.sp"
 
 // The rest is defined in <bots_fun>
-#define PLUGIN_VERSION  "25w48c"
+#define PLUGIN_VERSION  "25w48d"
 #define PLUGIN_AUTHOR   "Heapons"
 #define PLUGIN_DESC     "Automatically manage bots."
 #define PLUGIN_URL      "https://github.com/Serider-Lounge/SRCDS-Bots-Fun"
@@ -93,15 +93,13 @@ public void OnPluginStart()
     SetCommandFlags("nav_generate_incremental", GetCommandFlags("nav_generate_incremental") & ~FCVAR_CHEAT);
 }
 
+public void OnMapStart()
+{
+    OnConfigsExecuted();
+}
+
 public void OnConfigsExecuted()
 {
-    char mapName[96];
-    GetCurrentMap(mapName, sizeof(mapName));
-    if (StrContains(mapName, "workshop/") == 0)
-    {
-        strcopy(mapName, sizeof(mapName), mapName[9]);
-    }
-
     int botQuota = TF2_IsGameMode("mann_vs_machine") ? GetConVarInt(FindConVar("tf_mvm_defenders_team_size")) : RoundFloat(g_ConVars[bot_ratio].FloatValue * GetMaxHumanPlayers());
 
     SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
@@ -127,7 +125,6 @@ public void OnConfigsExecuted()
         SetConVarString(g_ConVars[navbot_bot_quota_mode], "fill");
         SetConVarBool(FindConVar("sm_navbot_tf_teammates_are_enemies"),
                       VScriptExists("ffa/ffa") ||
-                      StrContains(mapName, "gg_") == 0 ||
                       FindConVar("mp_friendlyfire").BoolValue);
 
         PrintToServer("[%s] NavBot Navigation Meshes detected, adding NavBot clients...", PLUGIN_NAME);
