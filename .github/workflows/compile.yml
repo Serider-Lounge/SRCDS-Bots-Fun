@@ -34,17 +34,21 @@ jobs:
           version: '1.13.x'
           version-file: ./bots_fun.sp
 
+      - name: Create include directory
+        run: mkdir -p include
+
       - name: Download Third-Party Includes
-        working-directory: ${{ env.SCRIPTS_PATH }}/include
+        working-directory: include
         run: |
-          mkdir -p navbot navbot/interfaces multicolors
-          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/main/scripting/include/navbot.inc -O navbot.inc
-          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/main/scripting/include/navbot/bots.inc -O navbot/bots.inc
-          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/main/scripting/include/navbot/interfaces/path.inc -O navbot/interfaces/path.inc
-          wget -q -L https://raw.githubusercontent.com/APGRoboCop/rcbot2/master/scripting/include/rcbot2.inc -O rcbot2.inc
+          mkdir -p multicolors navbot navbot/interfaces
           wget -q -L https://raw.githubusercontent.com/JoinedSenses/SourceMod-IncludeLibrary/master/include/multicolors.inc -O multicolors.inc
           wget -q -L https://raw.githubusercontent.com/JoinedSenses/SourceMod-IncludeLibrary/master/include/multicolors/colors.inc -O multicolors/colors.inc
           wget -q -L https://raw.githubusercontent.com/JoinedSenses/SourceMod-IncludeLibrary/master/include/multicolors/morecolors.inc -O multicolors/morecolors.inc
+          wget -q -L https://raw.githubusercontent.com/APGRoboCop/rcbot2/refs/heads/master/scripting/include/rcbot2.inc -O rcbot2.inc
+          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot.inc -O navbot.inc
+          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot/nav_mesh.inc -O navbot/nav_mesh.inc
+          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot/bots.inc -O navbot/bots.inc
+          wget -q -L https://raw.githubusercontent.com/caxanga334/NavBot/refs/heads/main/scripting/include/navbot/interfaces/path.inc -O navbot/interfaces/path.inc
           ls -lah
 
       - name: Compile plugins
