@@ -49,6 +49,7 @@ topmenus.inc
 usermessages.inc
 vector.inc
 version*.inc
+virtual_address.inc
 
 multicolors*
 navbot*

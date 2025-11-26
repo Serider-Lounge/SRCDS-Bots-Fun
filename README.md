@@ -48,10 +48,12 @@ When all **humans** have died, the round ends pre-maturely so players won't have
 ## ConVars
 > ### `cfg/sourcemod/bots_fun.cfg`
 
-|Name| Default|Description|
+|Name|Default|Description|
 |-|-|-|
 |`sm_bot_enabled`|`1`|Toggle the plugin.|
 |`sm_bot_ratio`|`0.25`|Ratio of the bot quota to max players (0.0 – 1.0).|
+|`sm_navbot_bot_quota`|`0`|Determines the total number of navbots in the game.|
+|`sm_navbot_bot_quota_mode`|`normal`|Determines the type of quota. Allowed values: 'normal', 'fill'. If 'fill', the server will adjust bots to keep N players in the game, where N is bot_quota.|
 |`rcbot_bot_quota`|`0`|Determines the total number of RCBot clients in the game.|
 |`rcbot_bot_quota_mode`|`normal`|Determines the type of RCBot quota: `normal` or `fill`. If `fill`, the server keeps N players, where N is the quota.|
 |`sm_bot_humans_only`|`1`|End the round prematurely in Arena Mode / Sudden Death when all human players are dead.|

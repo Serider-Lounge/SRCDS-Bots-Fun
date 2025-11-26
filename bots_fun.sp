@@ -1,4 +1,5 @@
 #include <bots_fun>
+#include <virtual_address>
 #undef REQUIRE_EXTENSIONS
 #include <rcbot2>
 #include <navbot>
