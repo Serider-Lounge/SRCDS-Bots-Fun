@@ -7,6 +7,12 @@ public Action Command_NavInfo(int client, int args)
     {
         strcopy(botType, sizeof(botType), "NavBot");
         botQuota = g_ConVars[navbot_bot_quota].IntValue;
+        CReplyToCommand(client,
+            "[{red}%s{default}]:\n- {olive}Bot Type{default}: {lightcyan}%s\n- {olive}Quota{default}: {lightcyan}%d{default}",
+            PLUGIN_NAME,
+            botType,
+            botQuota);
+        return Plugin_Handled;
     }
     else if (RCBot2_IsWaypointAvailable()) // RCBot2
     {

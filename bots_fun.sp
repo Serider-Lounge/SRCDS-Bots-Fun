@@ -9,10 +9,19 @@
 #include "bots_fun/events.sp"
 
 // The rest is defined in <bots_fun>
-#define PLUGIN_VERSION  "25w48a"
+#define PLUGIN_VERSION  "25w48b"
 #define PLUGIN_AUTHOR   "Heapons"
 #define PLUGIN_DESC     "Automatically manage bots."
 #define PLUGIN_URL      "https://github.com/Serider-Lounge/SRCDS-Bots-Fun"
+
+public Plugin myinfo =
+{
+    name = PLUGIN_NAME,
+    author = PLUGIN_AUTHOR,
+    description = PLUGIN_DESC,
+    version = PLUGIN_VERSION,
+    url = PLUGIN_URL
+};
 
 /* ========[Forwards]======== */
 public void OnPluginStart()
@@ -20,8 +29,6 @@ public void OnPluginStart()
     /* ConVars */
     // tf_bot_quota
     g_ConVars[tf_bot_quota] = FindConVar("tf_bot_quota");
-    // sm_navbot_quota_quantity
-    g_ConVars[navbot_bot_quota] = FindConVar("sm_navbot_quota_quantity");
     // sm_bot_enabled
     g_ConVars[plugin_enabled] = CreateConVar("sm_bot_enabled", "1",
                                              "Toggle the plugin.",
@@ -33,6 +40,16 @@ public void OnPluginStart()
                                         FCVAR_NOTIFY,
                                         true, 0.0, true, 1.0);
     HookConVarChange(g_ConVars[bot_ratio], ConVar_BotRatio);
+    // sm_navbot_quota
+    g_ConVars[navbot_bot_quota] = CreateConVar("sm_navbot_bot_quota", "0",
+                                               "Determines the total number of navbots in the game.",
+                                               FCVAR_NOTIFY,
+                                               true, 0.0, true, float(MAXPLAYERS));
+    HookConVarChange(g_ConVars[navbot_bot_quota], ConVar_NavBotQuota);
+    // sm_navbot_bot_quota_mode
+    g_ConVars[navbot_bot_quota_mode] = CreateConVar("sm_navbot_bot_quota_mode", "normal",
+                                                    "Determines the type of quota. Allowed values: 'normal', 'fill'. If 'fill', the server will adjust bots to keep N players in the game, where N is bot_quota.",
+                                                    FCVAR_NOTIFY);
     // rcbot_bot_quota
     g_ConVars[rcbot_bot_quota] = CreateConVar("rcbot_bot_quota", "0",
                                               "Determines the total number of rcbots in the game.",
@@ -77,7 +94,7 @@ public void OnPluginStart()
 
 public void OnConfigsExecuted()
 {
-    char mapName[64];
+    char mapName[96];
     GetCurrentMap(mapName, sizeof(mapName));
     if (StrContains(mapName, "workshop/") == 0)
     {
@@ -106,14 +123,16 @@ public void OnConfigsExecuted()
         SetConVarInt(g_ConVars[tf_bot_quota], 0);
 
         SetConVarInt(g_ConVars[navbot_bot_quota], botQuota);
-        SetConVarString(FindConVar("sm_navbot_quota_mode"), "fill");
+        SetConVarString(g_ConVars[navbot_bot_quota_mode], "fill");
         SetConVarBool(FindConVar("sm_navbot_tf_teammates_are_enemies"),
                       VScriptExists("ffa/ffa") ||
                       StrContains(mapName, "gg_") == 0 ||
                       FindConVar("mp_friendlyfire").BoolValue);
 
         PrintToServer("[%s] NavBot Navigation Meshes detected, adding NavBot clients...", PLUGIN_NAME);
-        PrintToServer("[%s] sm_navbot_quota_quantity: %d.", PLUGIN_NAME, g_ConVars[navbot_bot_quota].IntValue);
+        PrintToServer("[%s] navbot_bot_quota: %d.", PLUGIN_NAME, g_ConVars[navbot_bot_quota].IntValue);
+
+        NavBot_UpdateBotQuota();
     }
     else if (RCBot2_IsWaypointAvailable()) // RCBot2
     {
@@ -152,6 +171,9 @@ public void OnConfigsExecuted()
 
 public void OnClientDisconnect(int client)
 {
-    if (RCBot2_IsWaypointAvailable() && !IsFakeClient(client))
-        RCBot2_UpdateBotQuota();
+    if (!IsFakeClient(client))
+    {
+        if (NavBotNavMesh.IsLoaded()) NavBot_UpdateBotQuota();
+        else if (RCBot2_IsWaypointAvailable()) RCBot2_UpdateBotQuota();
+    }
 }

@@ -11,13 +11,14 @@ enum
 {
     // External
     tf_bot_quota,
-    navbot_bot_quota,
 
     // Plugin
     plugin_enabled,
     bot_ratio,
     rcbot_bot_quota,
     rcbot_bot_quota_mode,
+    navbot_bot_quota,
+    navbot_bot_quota_mode,
     humans_only,
     rename_bots,
     
@@ -25,7 +26,8 @@ enum
 }
 
 ConVar g_ConVars[MAX_CONVARS];
-char g_RCBotQuotaMode[16];
+char g_NavBotQuotaMode[16],
+     g_RCBotQuotaMode[16];
 Handle g_hConfigTrie;
 
 stock int GetAliveHumansCount()
@@ -47,5 +49,5 @@ stock int GetAliveHumansCount()
 
 #include <bots_fun/gamemodes>
 #include <bots_fun/navmesh>
-#undef REQUIRE_EXTENSIONS
 #include <bots_fun/rcbot2>
+#include <bots_fun/navbot>

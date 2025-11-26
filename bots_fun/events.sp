@@ -61,9 +61,10 @@ public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadc
 
     event.BroadcastDisabled = event.GetBool("bot");
 
-    if (RCBot2_IsWaypointAvailable() && !IsFakeClient(client) && IsClientInGame(client))
+    if (!IsFakeClient(client) && IsClientInGame(client))
     {
-        RCBot2_UpdateBotQuota();
+        if (NavBotNavMesh.IsLoaded()) NavBot_UpdateBotQuota();
+        else if (RCBot2_IsWaypointAvailable()) RCBot2_UpdateBotQuota();
     }
 
     return Plugin_Changed;

@@ -1,46 +1,48 @@
 #undef REQUIRE_EXTENSIONS
-#include <rcbot2>
+#include <navbot>
 
 /**
- * In fill mode, enforce rcbot quota.
+ * In fill mode, enforce navbot quota.
  */
-stock void RCBot2_UpdateBotQuota()
+stock void NavBot_UpdateBotQuota()
 {
-    GetConVarString(g_ConVars[rcbot_bot_quota_mode], g_RCBotQuotaMode, sizeof(g_RCBotQuotaMode));
-    if (strcmp(g_RCBotQuotaMode, "fill") == 0)
+    GetConVarString(g_ConVars[navbot_bot_quota_mode], g_NavBotQuotaMode, sizeof(g_NavBotQuotaMode));
+    if (strcmp(g_NavBotQuotaMode, "fill") == 0)
     {
-        int quota = g_ConVars[rcbot_bot_quota].IntValue;
+        int quota = g_ConVars[navbot_bot_quota].IntValue;
         int humanCount = 0;
-        int rcbotCount = 0;
+        int navbotCount = 0;
 
         for (int i = 1; i <= MaxClients; i++)
         {
             if (IsClientInGame(i) && !IsFakeClient(i) && GetClientTeam(i) > 1) // Only count humans on a team
                 humanCount++;
-            if (IsRCBot2Client(i) && GetClientTeam(i) > 1) // Only count bots on a team
-                rcbotCount++;
+            if (NavBotManager.IsNavBot(i) && GetClientTeam(i) > 1) // Only count bots on a team
+                navbotCount++;
         }
 
-        int botsToAdd = quota - (humanCount + rcbotCount);
+        int botsToAdd = quota - (humanCount + navbotCount);
 
         for (int i = 0; i < botsToAdd; i++)
         {
-            if ((humanCount + rcbotCount) >= quota)
+            if ((humanCount + navbotCount) >= quota)
                 break;
-            ServerCommand("rcbot%s addbot", IsDedicatedServer() ? "d" : "");
-            rcbotCount++;
+
+            NavBot bot = NavBot();
+            if (!bot.IsNull)
+                navbotCount++;
         }
 
-        int botsToKick = rcbotCount - (quota - humanCount);
+        int botsToKick = navbotCount - (quota - humanCount);
         while (botsToKick > 0)
         {
             bool kicked = false;
             for (int i = 1; i <= MaxClients; i++)
             {
-                if (IsRCBot2Client(i) && !IsPlayerAlive(i) && GetClientTeam(i) > 1)
+                if (NavBotManager.IsNavBot(i) && !IsPlayerAlive(i) && GetClientTeam(i) > 1)
                 {
                     KickClient(i);
-                    rcbotCount--;
+                    navbotCount--;
                     botsToKick--;
                     kicked = true;
                     break;
@@ -50,10 +52,10 @@ stock void RCBot2_UpdateBotQuota()
             {
                 for (int i = 1; i <= MaxClients; i++)
                 {
-                    if (IsRCBot2Client(i) && GetClientTeam(i) > 1)
+                    if (NavBotManager.IsNavBot(i) && GetClientTeam(i) > 1)
                     {
                         KickClient(i);
-                        rcbotCount--;
+                        navbotCount--;
                         botsToKick--;
                         kicked = true;
                         break;

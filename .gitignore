@@ -50,8 +50,8 @@ usermessages.inc
 vector.inc
 version*.inc
 
-!include/bots_fun/*
-
 multicolors*
 navbot*
 rcbot2*
+
+!include/bots_fun/**
