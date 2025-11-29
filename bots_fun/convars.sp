@@ -7,32 +7,27 @@ public void ConVar_RCBotQuota(ConVar convar, const char[] oldValue, const char[]
 {
     int value = StringToInt(newValue);
 
-    int rcbotCount = 0;
+    int rcbots = 0;
     for (int i = 1; i <= MaxClients; i++)
     {
         if (IsRCBot2Client(i))
         {
-            rcbotCount++;
+            rcbots++;
         }
     }
 
-    if (value < rcbotCount)
+    for (int i = 1; i <= MaxClients && rcbots > value; i++)
     {
-        for (int i = 1; i <= MaxClients && rcbotCount > value; i++)
+        if (IsRCBot2Client(i))
         {
-            if (IsRCBot2Client(i))
-            {
-                KickClient(i);
-                rcbotCount--;
-            }
+            KickClient(i);
+            rcbots--;
         }
     }
-    else if (value > rcbotCount)
+
+    for (int i = rcbots; i < value; i++)
     {
-        for (int i = rcbotCount; i < value; i++)
-        {
-            ServerCommand("rcbot%s addbot", IsDedicatedServer() ? "d" : ""); // Add RCBots this way instead due to a bug where 'rcbot_change_classes' isn't respected.
-        }
+        ServerCommand("rcbot%s addbot", IsDedicatedServer() ? "d" : "");
     }
 }
 
@@ -40,31 +35,26 @@ public void ConVar_NavBotQuota(ConVar convar, const char[] oldValue, const char[
 {
     int value = StringToInt(newValue);
 
-    int navbotCount = 0;
+    int navbots = 0;
     for (int i = 1; i <= MaxClients; i++)
     {
         if (NavBotManager.IsNavBot(i))
         {
-            navbotCount++;
+            navbots++;
         }
     }
 
-    if (value < navbotCount)
+    for (int i = 1; i <= MaxClients && navbots > value; i++)
     {
-        for (int i = 1; i <= MaxClients && navbotCount > value; i++)
+        if (NavBotManager.IsNavBot(i))
         {
-            if (NavBotManager.IsNavBot(i))
-            {
-                KickClient(i);
-                navbotCount--;
-            }
+            KickClient(i);
+            navbots--;
         }
     }
-    else if (value > navbotCount)
+
+    for (int i = navbots; i < value; i++)
     {
-        for (int i = navbotCount; i < value; i++)
-        {
-            NavBot();
-        }
+        ServerCommand("sm_navbot_add");
     }
 }

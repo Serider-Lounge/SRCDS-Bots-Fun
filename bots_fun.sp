@@ -1,8 +1,4 @@
 #include <bots_fun>
-#include <virtual_address>
-#undef REQUIRE_EXTENSIONS
-#include <rcbot2>
-#include <navbot>
 
 #include "bots_fun/commands.sp"
 #include "bots_fun/configs.sp"
@@ -10,7 +6,7 @@
 #include "bots_fun/events.sp"
 
 // The rest is defined in <bots_fun>
-#define PLUGIN_VERSION  "25w48d"
+#define PLUGIN_VERSION  "25w48e"
 #define PLUGIN_AUTHOR   "Heapons"
 #define PLUGIN_DESC     "Automatically manage bots."
 #define PLUGIN_URL      "https://github.com/Serider-Lounge/SRCDS-Bots-Fun"
@@ -93,16 +89,11 @@ public void OnPluginStart()
     SetCommandFlags("nav_generate_incremental", GetCommandFlags("nav_generate_incremental") & ~FCVAR_CHEAT);
 }
 
-public void OnMapStart()
-{
-    OnConfigsExecuted();
-}
-
 public void OnConfigsExecuted()
 {
-    int botQuota = TF2_IsGameMode("mann_vs_machine") ? GetConVarInt(FindConVar("tf_mvm_defenders_team_size")) : RoundFloat(g_ConVars[bot_ratio].FloatValue * GetMaxHumanPlayers());
-
-    SetConVarString(FindConVar("tf_bot_quota_mode"), "fill");
+    int botQuota = TF2_IsGameMode("mann_vs_machine") ?
+                   GetConVarInt(FindConVar("tf_mvm_defenders_team_size")) :
+                   RoundFloat(g_ConVars[bot_ratio].FloatValue * GetMaxHumanPlayers());
 
     // Check if the plugin is enabled
     if (!g_ConVars[plugin_enabled].BoolValue)
@@ -120,8 +111,8 @@ public void OnConfigsExecuted()
     {
         SetConVarInt(g_ConVars[rcbot_bot_quota], 0);
         SetConVarInt(g_ConVars[tf_bot_quota], 0);
-
         SetConVarInt(g_ConVars[navbot_bot_quota], botQuota);
+        
         SetConVarString(g_ConVars[navbot_bot_quota_mode], "fill");
         SetConVarBool(FindConVar("sm_navbot_tf_teammates_are_enemies"),
                       VScriptExists("ffa/ffa") ||
@@ -169,9 +160,6 @@ public void OnConfigsExecuted()
 
 public void OnClientDisconnect(int client)
 {
-    if (!IsFakeClient(client))
-    {
-        if (NavBotNavMesh.IsLoaded()) NavBot_UpdateBotQuota();
-        else if (RCBot2_IsWaypointAvailable()) RCBot2_UpdateBotQuota();
-    }
+    if (NavBotNavMesh.IsLoaded()) NavBot_UpdateBotQuota();
+    else if (RCBot2_IsWaypointAvailable()) RCBot2_UpdateBotQuota();
 }

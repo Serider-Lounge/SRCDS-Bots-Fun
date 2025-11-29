@@ -56,12 +56,11 @@ public void Event_PlayerDeath(Event event, const char[] name, bool dontBroadcast
 public Action Event_PlayerStatus(Event event, const char[] name, bool dontBroadcast)
 {
     int client = GetClientOfUserId(event.GetInt("userid"));
-    if (client <= 0 || !IsClientInGame(client))
-        return Plugin_Changed;
+    if (client == 0) return Plugin_Changed;
 
     event.BroadcastDisabled = event.GetBool("bot");
 
-    if (!IsFakeClient(client) && IsClientInGame(client))
+    if (!IsFakeClient(client))
     {
         if (NavBotNavMesh.IsLoaded()) NavBot_UpdateBotQuota();
         else if (RCBot2_IsWaypointAvailable()) RCBot2_UpdateBotQuota();
