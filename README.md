@@ -1,3 +1,6 @@
+# Rewrite in progress‼
+<s>
+
 # [TF2/ANY?] Bots Fun (with [NavBot](https://github.com/caxanga334/NavBot) & [RCBot2](https://github.com/APGRoboCop/rcbot2) Support‼)
 ### Combine this with [<img src="https://avatars.githubusercontent.com/u/10157643" alt="@caxanga334" width="16" height="16" style="vertical-align:middle; border-radius:3px;"/> caxanga334](https://github.com/caxanga334)'s [Bot Auto-Balance](https://github.com/caxanga334/sm-plugins/actions) plugin‼
 # Why?
@@ -58,3 +61,5 @@ When all **humans** have died, the round ends pre-maturely so players won't have
 |`rcbot_bot_quota_mode`|`normal`|Determines the type of RCBot quota: `normal` or `fill`. If `fill`, the server keeps N players, where N is the quota.|
 |`sm_bot_humans_only`|`1`|End the round prematurely in Arena Mode / Sudden Death when all human players are dead.|
 |`sm_bot_rename_bots`|`1`|If enabled, bots will be renamed based on their player model.|
+
+</s>
